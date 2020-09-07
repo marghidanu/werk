@@ -1,0 +1,17 @@
+name: werk
+version: 0.1.0
+
+authors:
+  - tudor@marghidanu.com
+
+targets:
+  werk:
+    main: src/werk.cr
+
+dependencies:
+  admiral:
+    github: jwaldrip/admiral.cr
+
+crystal: 0.35.1
+
+license: MIT

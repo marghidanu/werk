@@ -1,0 +1,52 @@
+version: "1"
+
+description: "Manage Werk with Werk"
+
+jobs:
+  main:
+    description: "Build application"
+    commands:
+      - shards build --progress
+    needs:
+      - lint
+      - test
+
+  lint:
+    description: "Lint code"
+    commands:
+      - ameba
+    can_fail: true
+
+  test:
+    description: "Test code"
+    commands:
+      - crystal spec
+
+  docs:
+    description: Generate API documentation
+    commands:
+      - crystal docs
+      - open docs/index.html
+
+  install:
+    description: Install Werk locally
+    commands:
+      - sudo cp -v ./bin/werk /usr/local/bin
+    needs:
+      - main
+
+  uninstall:
+    description: Uninstall Werk locally
+    variables:
+      EXECUTABLE: /usr/local/bin/werk
+    commands:
+      - |-
+        if [ -f "${EXECUTABLE}" ]; then
+          sudo rm -vf "${EXECUTABLE}"
+        else
+          echo "Werk is not installed!"
+        fi
+
+  env:
+    commands:
+      - export
