@@ -38,14 +38,9 @@ jobs:
   uninstall:
     description: Uninstall Werk locally
     variables:
-      EXECUTABLE: /usr/local/bin/werk
+      APP: /usr/local/bin/werk
     commands:
-      - |-
-        if [ -f "${EXECUTABLE}" ]; then
-          sudo rm -vf "${EXECUTABLE}"
-        else
-          echo "Werk is not installed!"
-        fi
+      - '[[ -f "${APP}" ]] && sudo rm -vf "${APP}" || echo "Werk is not installed!"'
 
   env:
     commands:
