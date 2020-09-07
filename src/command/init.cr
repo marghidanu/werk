@@ -1,3 +1,4 @@
+require "log"
 require "../model/*"
 
 module Werk::Command

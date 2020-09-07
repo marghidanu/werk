@@ -6,7 +6,7 @@ jobs:
   main:
     description: "Build application"
     commands:
-      - shards build --progress
+      - shards build
     needs:
       - lint
       - test

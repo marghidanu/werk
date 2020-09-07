@@ -19,6 +19,9 @@ module Werk::Model
     # Signals if the job is allowed to fail or not.
     property can_fail = false
 
+    # Suppress job output to STDOUT
+    property silent = false
+
     def initialize(@description, @commands)
     end
   end

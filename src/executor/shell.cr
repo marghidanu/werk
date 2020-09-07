@@ -1,6 +1,8 @@
+require "../utils/*"
+
 module Werk::Executor
   class Shell < Werk::Executor::Base
-    def run(name : String, job : Werk::Model::Job, context : String)
+    def run(name : String, job : Werk::Model::Job, context : String) : Werk::Model::JobResult
       content = [
         "#!/bin/sh",
         "set -o errexit",
@@ -12,12 +14,18 @@ module Werk::Executor
       File.write(script.path, content.join("\n"))
       File.chmod(script.path, 0o755)
 
-      output = IO::Memory.new
+      buffer_io = IO::Memory.new
+
+      writers = Array(IO).new()
+      writers << buffer_io
+      writers << Werk::Utils::PrefixIO.new(STDOUT, name) unless job.silent
+
+      output_io = IO::MultiWriter.new(writers)
       process = Process.new(". #{script.path}",
         shell: true,
         env: job.variables,
-        output: output,
-        error: output,
+        output: output_io,
+        error: output_io,
         chdir: context,
       )
 
@@ -28,7 +36,7 @@ module Werk::Executor
       Werk::Model::JobResult.new(
         name: name,
         exit_code: status.exit_code,
-        output: output.to_s,
+        output: buffer_io.to_s,
         duration: duration
       )
     end

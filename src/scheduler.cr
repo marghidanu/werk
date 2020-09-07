@@ -1,5 +1,3 @@
-require "log"
-
 require "./model/*"
 require "./utils/*"
 require "./executor/*"
@@ -37,7 +35,6 @@ module Werk
           variables["WERK_JOB_DESCRIPTION"] = job.description || ""
           job.variables = variables
 
-          Log.info { "Running job \"#{name}\"" }
           spawn do
             task = Werk::Executor::Shell.new
             result = task.run(name, job, context)
@@ -48,9 +45,6 @@ module Werk
         stage.size.times do
           result = results.receive
           job = @config.jobs[result.name]
-
-          Log.info { "Output for job \"#{result.name}\": #{result.duration.total_seconds} seconds" }
-          puts result.output
 
           if (result.exit_code != 0) && !job.can_fail
             raise "Job \"#{result.name}\" failed!"
@@ -68,8 +62,7 @@ module Werk
       visited << name
 
       graph.add_vertex(name)
-      job = @config.jobs[name]
-      job.needs.each do |dependency|
+      @config.jobs[name].needs.each do |dependency|
         graph.add_edge(dependency, name)
         self.traverse(dependency, graph, visited)
       end
