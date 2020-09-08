@@ -12,12 +12,21 @@ jobs:
   #     - name: Checkout
   #       uses: actions/checkout@v2
 
-  # build-ubuntu:
-  #   runs-on: ubuntu-latest
+  build-ubuntu:
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
+    steps:
+      - name: Install prerequisites
+        run: |
+          snap install crystal --classic
+
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Build application
+        run: |
+          shards install
+          shards build
 
   build-docker:
     runs-on: ubuntu-latest
