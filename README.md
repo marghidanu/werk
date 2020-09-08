@@ -5,7 +5,7 @@ Dead simple task runner.
 ## Features
 
 - [x] Automatic determination of the execution plan
-- [x] Parallel jobc execution
+- [x] Parallel jobs execution
 - [x] Shell executor
 - [ ] Docker executor
 - [ ] SSH executor (WIP)
