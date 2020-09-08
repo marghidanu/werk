@@ -21,6 +21,12 @@ jobs:
     description: "Test code"
     commands:
       - crystal spec
+  
+  deps:
+    description: "Install dependencies"
+    commands:
+      - brew install libssh2
+      - shards install
 
   docs:
     description: Generate API documentation

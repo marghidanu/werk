@@ -19,8 +19,8 @@ module Werk::Executor
       writers = Array(IO).new()
       writers << buffer_io
       writers << Werk::Utils::PrefixIO.new(STDOUT, name) unless job.silent
-
       output_io = IO::MultiWriter.new(writers)
+
       process = Process.new(". #{script.path}",
         shell: true,
         env: job.variables,
