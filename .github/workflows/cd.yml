@@ -1,0 +1,30 @@
+name: CD
+
+on:
+  push:
+    tags: [ "*" ]
+
+jobs:
+  # build-macos:
+  #   runs-on: macos-latest
+
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
+
+  # build-ubuntu:
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
+
+  build-docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      
+      - name: Docker build
+        run: docker build -t marghidanu/werk  .
