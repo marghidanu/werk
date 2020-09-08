@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Install prerequisites
         run: |
-          snap install crystal --classic
+          sudo snap install crystal --classic
 
       - name: Checkout
         uses: actions/checkout@v2
