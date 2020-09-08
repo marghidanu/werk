@@ -18,7 +18,7 @@ Dead simple task runner.
 
 Create a **werk.yml** with the following content:
 
-```
+```yaml
 version: "1"
 
 description: "Manage Werk with Werk"
