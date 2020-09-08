@@ -16,34 +16,31 @@ jobs:
       - name: Install prerequisites
         run: |
           brew tap veelenga/tap
-          brew update 
           brew install crystal ameba
-      
+
       - name: Lint code
         run: ameba
 
       - name: Install dependencies
         run: shards install
-      
+
       - name: Run tests
         run: crystal spec
 
-  build:
+  linux:
     runs-on: ubuntu-latest
 
     container:
-      image: crystallang/crystal
+      image: crystallang/crystal:0.3.51-alpine
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Hadolint Action
-        uses: brpaz/hadolint-action@v1.1.0
+      - name: Install prerequisites
+        run: apk add --no-cache ameba
 
-      - name: Crystal Ameba Linter
-        uses: crystal-ameba/github-action@v0.2.6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Lint code
+        run: ameba
 
       - name: Install dependencies
         run: shards install
