@@ -8,7 +8,9 @@ module Werk::Utils
 
     # Add a new vertex to the graph
     def add_vertex(name : String)
-      @adjacency_list[name] = Set(String).new if !@adjacency_list.has_key?(name)
+      unless @adjacency_list.has_key?(name)
+        @adjacency_list[name] = Set(String).new
+      end
     end
 
     # Adds an edge between two vertices. If the vertices don't exist they will be automatically added.
@@ -30,10 +32,10 @@ module Werk::Utils
       ba = Hash(String, Set(String)).new
 
       @adjacency_list.each do |key, values|
-        ba[key] = Set(String).new if !ba.has_key?(key)
+        ba[key] = Set(String).new unless ba.has_key?(key)
 
         values.each do |value|
-          ba[value] = Set(String).new if !ba.has_key?(value)
+          ba[value] = Set(String).new unless ba.has_key?(value)
           ba[key] << value if key != value
         end
       end
@@ -51,7 +53,7 @@ module Werk::Utils
         end
       end
 
-      raise "Graph has a cycle!" if !ba.empty?
+      raise "Graph has a cycle!" unless ba.empty?
       result
     end
   end

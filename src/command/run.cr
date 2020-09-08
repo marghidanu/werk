@@ -19,7 +19,7 @@ module Werk::Command
       short: x
 
     def run
-      if !File.exists?(flags.config)
+      unless File.exists?(flags.config)
         raise "Configuration file missing!"
       end
 

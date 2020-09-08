@@ -8,14 +8,6 @@ module Werk
     def initialize(@config : Werk::Model::Config)
     end
 
-    # Get execution plan based on the generated graph
-    def get_plan(target : String)
-      graph = Werk::Utils::Graph.new
-      self.traverse(target, graph)
-
-      graph.topological_sort
-    end
-
     # Execute the target job and its dependencies according to he execution plan
     def run(target : String, context : String)
       plan = self.get_plan(target)
@@ -53,8 +45,16 @@ module Werk
       end
     end
 
+    # Get execution plan based on the generated graph
+    def get_plan(target : String)
+      graph = Werk::Utils::Graph.new
+      self.traverse(target, graph)
+
+      graph.topological_sort
+    end
+
     private def traverse(name : String, graph : Werk::Utils::Graph, visited = Set(String).new)
-      if !@config.jobs[name]?
+      unless @config.jobs[name]?
         raise "Job #{name} is not defined!"
       end
 
