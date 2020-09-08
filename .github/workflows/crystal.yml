@@ -7,8 +7,21 @@ on:
     branches: [master]
 
 jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    container:
+      image: veelenga/ameba:v0.13.2
+    
+    steps:
+      - name: Ameba linter
+        run: ameba
+
   macos:
     runs-on: macos-10.15
+
+    needs: quality
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -16,10 +29,7 @@ jobs:
       - name: Install prerequisites
         run: |
           brew tap veelenga/tap
-          brew install crystal ameba
-
-      - name: Lint code
-        run: ameba
+          brew install crystal
 
       - name: Install dependencies
         run: shards install
@@ -33,14 +43,10 @@ jobs:
     container:
       image: crystallang/crystal:0.35.1-alpine
 
+    needs: quality
+
     steps:
       - uses: actions/checkout@v2
-
-      - name: Install prerequisites
-        run: apk add --no-cache ameba
-
-      - name: Lint code
-        run: ameba
 
       - name: Install dependencies
         run: shards install
