@@ -1,9 +1,18 @@
 # werk
 
-TODO:
+Dead simple task runner.
 
-[ ] Add Docker executor
-[ ] Solve output for parallel execution
+# Features
+
+- [x] Automatic determination of the execution plan
+- [x] Parallel jobc execution
+- [x] Shell executor
+- [ ] Docker executor
+- [x] Real-time output support for parallel jobs
+- [x] Simple configuration DSL based on YAML
+- [ ] Save execution report (WIP)
+- [ ] Web UI for browsing the execution reports
+
 
 ## Contributing
 
