@@ -1,15 +1,17 @@
-name: Crystal CI
+name: CI
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
   pull_request:
-    branches: [master]
+    branches:
+      - master
 
 jobs:
   quality:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -18,15 +20,14 @@ jobs:
         uses: crystal-ameba/github-action@v0.2.6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Hadolint Action
         uses: brpaz/hadolint-action@v1.1.0
 
-  macos:
-    runs-on: macos-10.15
+  test-macos:
+    runs-on: macos-latest
 
     needs: quality
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -42,7 +43,7 @@ jobs:
       - name: Run tests
         run: crystal spec
 
-  linux:
+  test-linux:
     runs-on: ubuntu-latest
 
     container:
@@ -51,7 +52,8 @@ jobs:
     needs: quality
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
       - name: Install dependencies
         run: shards install
