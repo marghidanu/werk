@@ -8,6 +8,7 @@ Dead simple task runner.
 - [x] Parallel jobc execution
 - [x] Shell executor
 - [ ] Docker executor
+- [ ] SSH executor
 - [x] Real-time output support for parallel jobs
 - [x] Simple configuration DSL based on YAML
 - [ ] Save execution report (WIP)
