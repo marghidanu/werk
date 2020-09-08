@@ -7,6 +7,27 @@ on:
     branches: [master]
 
 jobs:
+  macos:
+    runs-on: macos-10.15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install prerequisites
+        run: |
+          brew tap veelenga/tap
+          brew update 
+          brew install crystal ameba
+      
+      - name: Lint code
+        run: ameba
+
+      - name: Install dependencies
+        run: shards install
+      
+      - name: Run tests
+        run: crystal spec
+
   build:
     runs-on: ubuntu-latest
 
