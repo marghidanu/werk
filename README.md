@@ -2,7 +2,7 @@
 
 Dead simple task runner.
 
-# Features
+## Features
 
 - [x] Automatic determination of the execution plan
 - [x] Parallel jobc execution
@@ -13,6 +13,53 @@ Dead simple task runner.
 - [ ] Save execution report (WIP)
 - [ ] Web UI for browsing the execution reports
 
+## Example
+
+Create a **werk.yml** with the following content:
+
+```
+version: "1"
+
+description: "Manage Werk with Werk"
+
+jobs:
+  main:
+    description: "Build application"
+    commands:
+      - shards build
+    needs:
+      - lint
+      - test
+
+  lint:
+    description: "Lint code"
+    commands:
+      - ameba
+    can_fail: true
+
+  test:
+    description: "Test code"
+    commands:
+      - crystal spec
+
+  docs:
+    description: Generate API documentation
+    commands:
+      - crystal docs
+      - open docs/index.html
+```
+
+after that you can run
+
+```
+werk run
+```
+
+to trigger the entire build flow. You can also trigger individual jobs by specifing a target like this:
+
+```
+werk run lint
+```
 
 ## Contributing
 
