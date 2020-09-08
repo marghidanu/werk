@@ -9,13 +9,16 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
-
-    container:
-      image: veelenga/ameba:v0.13.2
     
     steps:
-      - name: Ameba linter
-        run: ameba
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Crystal Ameba Linter
+        uses: crystal-ameba/github-action@v0.2.6
+      
+      - name: Hadolint Action
+        uses: brpaz/hadolint-action@v1.1.0
 
   macos:
     runs-on: macos-10.15
