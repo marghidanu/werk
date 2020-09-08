@@ -16,6 +16,8 @@ jobs:
 
       - name: Crystal Ameba Linter
         uses: crystal-ameba/github-action@v0.2.6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Hadolint Action
         uses: brpaz/hadolint-action@v1.1.0
