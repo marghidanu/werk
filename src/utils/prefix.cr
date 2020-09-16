@@ -17,9 +17,11 @@ module Werk::Utils
 
       data = String.new(slice)
       data.each_line do |line|
-        @output.puts "[#{@prefix}] #{line}"
+        @output.puts "[#{@prefix}] #{line.gsub(/\e\[([;\d]+)?m/, "")}"
       end
 
+    # TODO: This is a known issue with piping
+    rescue ex : IO::Error
       nil
     end
   end

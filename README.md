@@ -11,7 +11,7 @@ Dead simple task runner.
 - [ ] SSH executor (WIP)
 - [x] Real-time output support for parallel jobs
 - [x] Simple configuration DSL based on YAML
-- [ ] Save execution report
+- [x] Execution report
 - [ ] Web UI for browsing the execution reports
 
 ## Example
@@ -48,6 +48,7 @@ jobs:
     commands:
       - crystal docs
       - open docs/index.html
+    silent: true
 ```
 
 after that you can run
