@@ -21,7 +21,7 @@ jobs:
     description: "Test code"
     commands:
       - crystal spec
-  
+
   deps:
     description: "Install dependencies"
     commands:
