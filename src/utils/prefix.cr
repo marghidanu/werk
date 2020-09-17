@@ -13,6 +13,8 @@ module Werk::Utils
 
     # Adds a defined stamp for each incoming line
     def write(slice : Bytes) : Nil
+      check_open
+
       return if slice.empty?
 
       data = String.new(slice)
