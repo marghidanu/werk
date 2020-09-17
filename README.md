@@ -11,7 +11,7 @@ Dead simple task runner.
 - [ ] SSH executor (WIP)
 - [x] Real-time output support for parallel jobs
 - [x] Simple configuration DSL based on YAML
-- [x] Execution report
+- [x] Execution report (Partial support)
 - [ ] Web UI for browsing the execution reports
 
 ## Example
