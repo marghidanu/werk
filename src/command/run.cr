@@ -23,13 +23,17 @@ module Werk::Command
         raise "Configuration file missing!"
       end
 
-      content = File.read(flags.config)
-      config = Werk::Model::Config.from_yaml(content)
+      begin
+        content = File.read(flags.config)
+        config = Werk::Model::Config.from_yaml(content)
 
-      target = arguments.target || "main"
+        target = arguments.target || "main"
 
-      scheduler = Werk::Scheduler.new(config)
-      scheduler.run(target, flags.context)
+        scheduler = Werk::Scheduler.new(config)
+        scheduler.run(target, flags.context)
+      rescue yaml_ex : YAML::ParseException
+        raise "Parse error: #{flags.config}:#{yaml_ex.line_number}:#{yaml_ex.column_number}"
+      end
     end
   end
 end

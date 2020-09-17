@@ -1,6 +1,6 @@
 require "./spec_helper"
 
-describe Werk::Utils do
+describe "Graph" do
   it "should create an empty graph" do
     graph = Werk::Utils::Graph.new
 
