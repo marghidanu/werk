@@ -25,12 +25,15 @@ module Werk::Command
 
       begin
         content = File.read(flags.config)
+        if content.empty?
+          raise "Configuration file is empty!"
+        end
+
         config = Werk::Model::Config.from_yaml(content)
 
         target = arguments.target || "main"
-
-        scheduler = Werk::Scheduler.new(config)
-        scheduler.run(target, flags.context)
+        Werk::Scheduler.new(config)
+          .run(target, flags.context)
       rescue yaml_ex : YAML::ParseException
         raise "Parse error: #{flags.config}:#{yaml_ex.line_number}:#{yaml_ex.column_number}"
       end
