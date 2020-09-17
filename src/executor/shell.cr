@@ -7,16 +7,15 @@ module Werk::Executor
         "#!/bin/sh",
         "set -o errexit",
         "set -o nounset",
-      ]
-      content.concat(job.commands)
+      ].concat(job.commands).join("\n")
 
       script = File.tempfile
-      File.write(script.path, content.join("\n"))
+      File.write(script.path, content)
       File.chmod(script.path, 0o755)
 
       buffer_io = IO::Memory.new
 
-      writers = Array(IO).new()
+      writers = Array(IO).new
       writers << buffer_io
       writers << Werk::Utils::PrefixIO.new(STDOUT, name) unless job.silent
       output_io = IO::MultiWriter.new(writers)
@@ -35,9 +34,12 @@ module Werk::Executor
 
       Werk::Model::JobResult.new(
         name: name,
+        variables: job.variables,
+        content: content,
+        directory: context,
         exit_code: status.exit_code,
         output: buffer_io.to_s,
-        duration: duration
+        duration: duration.total_seconds
       )
     end
   end

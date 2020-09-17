@@ -12,6 +12,11 @@ module Werk
     def run(target : String, context : String)
       plan = self.get_plan(target)
 
+      report = Werk::Model::Report.new(
+        target: target,
+        plan: plan
+      )
+
       plan.each_with_index do |stage, stage_id|
         results = Channel(Werk::Model::JobResult).new
 
@@ -36,13 +41,17 @@ module Werk
 
         stage.size.times do
           result = results.receive
+
           job = @config.jobs[result.name]
+          report.jobs[result.name] = result
 
           if (result.exit_code != 0) && !job.can_fail
             raise "Job \"#{result.name}\" failed!"
           end
         end
       end
+
+      report
     end
 
     # Get execution plan based on the generated graph
