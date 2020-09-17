@@ -16,17 +16,11 @@ module Werk::Command
       short: c
 
     def run
-      unless File.exists?(flags.config)
-        raise "Configuration file missing!"
-      end
-
-      content = File.read(flags.config)
-      config = Werk::Model::Config.from_yaml(content)
+      config = Werk::Model::Config.load_file(flags.config)
 
       target = arguments.target || "main"
-
-      scheduler = Werk::Scheduler.new(config)
-      plan = scheduler.get_plan(target)
+      plan = Werk::Scheduler.new(config)
+        .get_plan(target)
 
       output = String::Builder.new
       index = 0
