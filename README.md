@@ -2,6 +2,10 @@
 
 Dead simple task runner.
 
+## Build status
+
+[![CI Status](https://github.com/marghidanu/werk/workflows/CI/badge.svg)](https://github.com/marghidanu/werk/actions)
+
 ## Features
 
 - [x] Automatic determination of the execution plan
