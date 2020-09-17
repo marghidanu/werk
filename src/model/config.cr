@@ -19,6 +19,7 @@ module Werk::Model
     def initialize(@description, @jobs)
     end
 
+    # Load configuration from file
     def self.load_file(path : String)
       unless File.exists?(path)
         raise "Configuration file missing!"
