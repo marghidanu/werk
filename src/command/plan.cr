@@ -1,4 +1,5 @@
 require "colorize"
+require "tallboy"
 
 require "../model/*"
 require "../scheduler"
@@ -22,25 +23,25 @@ module Werk::Command
       plan = Werk::Scheduler.new(config)
         .get_plan(target)
 
-      output = String::Builder.new
-      index = 0
-      plan.each do |stage|
-        output.puts("Stage #{index} (#{stage.size})".colorize(:blue))
+      table = Tallboy.table do
+        plan.each_with_index do |stage, index|
+          header "Stage #{index}", align: :center
+          header do
+            cell "Name", align: :center
+            cell "Description", align: :center
+            cell "Can fail?", align: :center
+          end
 
-        stage.each do |name|
-          job = config.jobs[name]
+          stage.each do |name|
+            job = config.jobs[name]
+            description = job.description.empty? ? "[No description]" : job.description
 
-          description = job.description.empty? ? "[No description]" : job.description
-
-          output.puts name.colorize(:yellow)
-          output.puts "#{description}"
-          output.puts
+            row [name, description, job.can_fail], border: :bottom
+          end
         end
-
-        index = +1
       end
 
-      puts output.to_s
+      puts table
     end
   end
 end

@@ -4,3 +4,7 @@ shards:
     git: https://github.com/jwaldrip/admiral.cr.git
     version: 1.11.2
 
+  tallboy:
+    git: https://github.com/epoch/tallboy.git
+    version: 0.9.2
+
