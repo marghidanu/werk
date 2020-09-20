@@ -17,17 +17,12 @@ module Werk::Utils
 
       return if slice.empty?
 
-      String.new(slice)
-        .split(/[\r\n]/)
-        .map { |l| l.chomp }
-        .each do |line|
-          @output.puts "[#{@prefix}] #{line.gsub(/\e\[([;\d]+)?m/, "")}"
-        end
-
-      # TODO: This is a known issue with piping
-
-
+      data = String.new(slice)
+      data.gsub("\r", "\n").each_line do |line|
+        @output.puts "[#{@prefix}] #{line.gsub(/\e\[([;\d]+)?m/, "")}"
+      end
     rescue ex : IO::Error
+      # TODO: This is a known issue with piping
       nil
     end
   end

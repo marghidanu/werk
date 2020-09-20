@@ -6,7 +6,8 @@ module Werk::Command
     define_help description: "Run target"
 
     define_argument target : String,
-      description: ""
+      description: "",
+      default: "main"
 
     define_flag config : String,
       description: "",
