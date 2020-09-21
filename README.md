@@ -6,6 +6,10 @@ Dead simple task runner.
 
 [![CI Status](https://github.com/marghidanu/werk/workflows/CI/badge.svg)](https://github.com/marghidanu/werk/actions)
 
+## Documentation
+
+For more information on how to get started, please check the [wiki](https://github.com/marghidanu/werk/wiki/Usage).
+
 ## Features
 
 - [x] Automatic determination of the execution plan
