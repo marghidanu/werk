@@ -59,17 +59,19 @@ jobs:
     silent: true
 ```
 
-after that you can run
+after that, you can run
 
 ```
 werk run
 ```
 
-to trigger the entire build flow. You can also trigger individual jobs by specifing a target like this:
+to trigger the entire build flow. You can also start individual jobs by specifying a target like this:
 
 ```
 werk run lint
 ```
+
+[![asciicast](https://asciinema.org/a/Qtd1BoU5vvgK4rOl1R113QKBA.svg)](https://asciinema.org/a/Qtd1BoU5vvgK4rOl1R113QKBA)
 
 ## Contributing
 
