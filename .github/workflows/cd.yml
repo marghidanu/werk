@@ -8,6 +8,9 @@ jobs:
   build-macos:
     runs-on: macos-latest
 
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+
     steps:
       - name: Install prerequisites
         run: brew install crystal
@@ -28,6 +31,9 @@ jobs:
 
   build-linux:
     runs-on: ubuntu-latest
+
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
 
     steps:
       - name: Install prerequisites
