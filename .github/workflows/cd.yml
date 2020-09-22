@@ -19,7 +19,7 @@ jobs:
         run: shards install
 
       - name: Build
-        run: shards build --release --no-debug -o werk-0.1.0-macos
+        run: shards build --release --no-debug
 
   build-linux:
     runs-on: ubuntu-latest
@@ -37,7 +37,7 @@ jobs:
         run: shards install
 
       - name: Build
-        run: shards build --release --no-debug --static -o werk-0.1.0-linux
+        run: shards build --release --no-debug --static
 
   build-docker:
     runs-on: ubuntu-latest
