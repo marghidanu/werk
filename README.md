@@ -6,6 +6,10 @@ Dead simple task runner.
 
 [![CI Status](https://github.com/marghidanu/werk/workflows/CI/badge.svg)](https://github.com/marghidanu/werk/actions)
 
+## Documentation
+
+For more information on how to get started, please check the [wiki](https://github.com/marghidanu/werk/wiki/Usage).
+
 ## Features
 
 - [x] Automatic determination of the execution plan
@@ -55,17 +59,21 @@ jobs:
     silent: true
 ```
 
-after that you can run
+after that, you can run
 
 ```
 werk run
 ```
 
-to trigger the entire build flow. You can also trigger individual jobs by specifing a target like this:
+to trigger the entire build flow. You can also start individual jobs by specifying a target like this:
 
 ```
 werk run lint
 ```
+
+Here's another example; in this case, I'm building Werk using itself.
+
+[![asciicast](https://asciinema.org/a/Qtd1BoU5vvgK4rOl1R113QKBA.svg)](https://asciinema.org/a/Qtd1BoU5vvgK4rOl1R113QKBA)
 
 ## Contributing
 
