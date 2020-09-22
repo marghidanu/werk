@@ -69,7 +69,7 @@ jobs:
           path: executables
       
       - name: List files
-        run: tree
+        run: apt install -y tree && tree
 
       - name: Create Release
         id: create_release
