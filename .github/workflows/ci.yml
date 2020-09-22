@@ -26,12 +26,11 @@ jobs:
 
   test-macos:
     runs-on: macos-latest
-
     needs: quality
+
     steps:
       - name: Install prerequisites
-        run: |
-          brew install crystal
+        run: brew install crystal
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -44,12 +43,12 @@ jobs:
 
   test-linux:
     runs-on: ubuntu-latest
-
-    container:
-      image: crystallang/crystal:0.35.1-alpine
-
     needs: quality
+
     steps:
+      - name: Install prerequisites
+        run: brew install crystal-lang
+
       - name: Checkout
         uses: actions/checkout@v2
 
