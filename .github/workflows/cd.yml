@@ -68,8 +68,11 @@ jobs:
         with:
           path: executables
       
+      - name: Install dependencies
+        run: brew install tree
+
       - name: List files
-        run: apt install -y tree && tree
+        run: tree executables/
 
       - name: Create Release
         id: create_release
