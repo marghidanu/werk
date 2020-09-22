@@ -67,12 +67,6 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           path: executables
-      
-      - name: Install dependencies
-        run: brew install tree
-
-      - name: List files
-        run: tree executables/
 
       - name: Create Release
         id: create_release
@@ -92,6 +86,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./executables/werk-macos/werk-macos
+          asset_path: ./executables/werk-macos/werk
           asset_name: werk-macos
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Linux
+        id: upload-werk-linux
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./executables/werk-linux/werk
+          asset_name: werk-linux
           asset_content_type: application/octet-stream
