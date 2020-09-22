@@ -1,0 +1,8 @@
+version: "1"
+
+jobs:
+  main:
+    description: "Hello world"
+    commands:
+      - echo "Hello world!"
+      - date 

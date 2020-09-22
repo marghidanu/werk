@@ -1,0 +1,28 @@
+version: "1"
+
+jobs:
+  main:
+    commands:
+      - shards build
+    needs:
+      - format
+      - lint
+      - test
+
+  format:
+    commands:
+      - crystal tool format --check
+    can_fail: true
+
+  lint:
+    commands:
+      - amebda
+
+  test:
+    commands:
+      - crystal spec
+
+  docs:
+    commands:
+      - crystal docs
+      - open docs/index.html

@@ -1,0 +1,14 @@
+version: "1"
+
+jobs:
+  main:
+    commands:
+      - echo "This"
+      - echo "...and that"
+    silent: true
+    needs:
+      - other
+  
+  other:
+    commands:
+      - echo "Other"

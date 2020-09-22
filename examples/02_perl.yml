@@ -1,0 +1,22 @@
+version: "1"
+
+variables:
+  PERL_CPANM_OPT: "--notest --quiet"
+
+jobs:
+  deps:
+    commands:
+      - cpanm --installdeps .
+
+  quality:
+    needs:
+      - test
+      - lint
+
+  lint:
+    commands:
+      - perlcritic lib t
+
+  test:
+    commands:
+      - prove -lr
