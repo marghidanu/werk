@@ -20,7 +20,7 @@ jobs:
 
       - name: Build
         run: shards build --release --no-debug
-      
+
       - uses: actions/upload-artifact@v2
         with:
           name: werk-macos
@@ -43,7 +43,7 @@ jobs:
 
       - name: Build
         run: shards build --release --no-debug --static
-      
+
       - uses: actions/upload-artifact@v2
         with:
           name: werk-linux
@@ -66,6 +66,10 @@ jobs:
       - build-linux
 
     steps:
+      - uses: actions/download-artifact@v2
+        with:
+          path: executables
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
