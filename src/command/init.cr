@@ -18,7 +18,9 @@ module Werk::Command
 
       default_job = Werk::Model::Job.new(
         description: "Default job",
-        commands: ["echo \"Hello world!\""]
+        commands: [
+          "echo \"Hello world!\""
+        ]
       )
 
       config = Werk::Model::Config.new(
