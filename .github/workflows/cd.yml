@@ -73,6 +73,11 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           path: executables
+      
+      - name: Print checksum
+        run: |
+          sha256sum ./executables/werk-macos/werk
+          sha256sum ./executables/werk-linux/werk
 
       - name: Create Release
         id: create_release
