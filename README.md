@@ -12,7 +12,7 @@ You can follow the installation guide available [here](https://github.com/marghi
 
 ## Documentation
 
-For more information on how to get started, please check the [wiki](https://github.com/marghidanu/werk/wiki/Usage).
+For more information on how to get started, please check the [wiki](https://github.com/marghidanu/werk/wiki/Guide).
 
 ## Features
 
