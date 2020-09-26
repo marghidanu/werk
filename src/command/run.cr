@@ -55,7 +55,7 @@ module Werk::Command
 
             row border: :bottom do
               cell job.name
-              cell (index + 1)
+              cell index
               cell (job.exit_code == 0) ? "OK" : "Failed"
               cell job.exit_code
               cell sprintf("%.3f secs", job.duration)
