@@ -1,4 +1,5 @@
 require "tallboy"
+require "colorize"
 
 require "../model/*"
 require "../scheduler"
@@ -43,7 +44,7 @@ module Werk::Command
         header do
           cell "Name", align: :center
           cell "Stage", align: :center
-          cell "Job status", align: :center
+          cell "Status", align: :center
           cell "Exit code", align: :center
           cell "Duration", align: :center
           cell "Executor", align: :center
@@ -56,7 +57,7 @@ module Werk::Command
             row border: :bottom do
               cell job.name
               cell index
-              cell (job.exit_code == 0) ? "OK" : "Failed"
+              cell (job.exit_code == 0) ? "OK".colorize(:green) : "Failed".colorize(:red), align: :center
               cell job.exit_code
               cell sprintf("%.3f secs", job.duration)
               cell "Shell"

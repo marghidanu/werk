@@ -16,17 +16,17 @@ module Werk::Command
         raise "Environment already initialized!"
       end
 
-      default_job = Werk::Model::Job.new(
+      main_job = Werk::Model::Job.new(
         description: "Default job",
         commands: [
-          "echo \"Hello world!\""
+          "echo \"Hello world!\"",
         ]
       )
 
       config = Werk::Model::Config.new(
         description: "Lorem ipsum dolor sic amet ...",
         jobs: {
-          "default" => default_job,
+          "main" => main_job,
         }
       )
 

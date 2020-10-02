@@ -1,4 +1,5 @@
 require "tallboy"
+require "colorize"
 
 require "../model/*"
 require "../scheduler"
@@ -24,7 +25,7 @@ module Werk::Command
 
       table = Tallboy.table do
         plan.each_with_index do |stage, index|
-          header "Stage #{index}", align: :center
+          header "Stage #{index}".colorize(:yellow), align: :center
           header do
             cell "Name", align: :center
             cell "Description", align: :center
@@ -35,7 +36,11 @@ module Werk::Command
             job = config.jobs[name]
             description = job.description.empty? ? "[No description]" : job.description
 
-            row [name, description, job.can_fail], border: :bottom
+            row border: :bottom do
+              cell name
+              cell description
+              cell job.can_fail ? "Yes".colorize(:red) : "No".colorize(:green), align: :center
+            end
           end
         end
       end
