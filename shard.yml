@@ -11,8 +11,10 @@ targets:
 dependencies:
   admiral:
     github: jwaldrip/admiral.cr
+    version: 1.11.2
   tallboy:
     github: epoch/tallboy
+    version: 0.9.3
 
 crystal: 0.35.1
 
