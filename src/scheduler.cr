@@ -14,7 +14,7 @@ module Werk
 
       report = Werk::Model::Report.new(
         target: target,
-        plan: plan
+        plan: plan,
       )
 
       plan.each_with_index do |stage, stage_id|
