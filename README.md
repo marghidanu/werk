@@ -77,7 +77,8 @@ werk run lint
 
 Here's another example; in this case, I'm building Werk using itself.
 
-[![asciicast](https://asciinema.org/a/Qtd1BoU5vvgK4rOl1R113QKBA.svg)](https://asciinema.org/a/Qtd1BoU5vvgK4rOl1R113QKBA)
+
+[![asciicast](https://asciinema.org/a/aFZ3qLxAAgpqQUSEofENKqx93.svg)](https://asciinema.org/a/aFZ3qLxAAgpqQUSEofENKqx93)
 
 ## Contributing
 
