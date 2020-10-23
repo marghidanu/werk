@@ -22,10 +22,12 @@ module Werk::Utils
 
       return if slice.empty?
 
-      data = String.new(slice)
-      data.gsub("\r", "\n").each_line do |line|
-        @output.puts "[#{@prefix.colorize(@color)}]\t#{line.gsub(/\e\[([;\d]+)?m/, "").strip()}"
-      end
+      String.new(slice)
+        .gsub(/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]/, "")
+        .gsub("\r", "\n")
+        .each_line do |line|
+          @output.puts("[#{@prefix.colorize(@color)}]\t#{line}")
+        end
     rescue ex : IO::Error
       # TODO: This is a known issue with piping
       nil
