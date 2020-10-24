@@ -44,12 +44,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: quality
 
-    env:
-      HOMEBREW_NO_AUTO_UPDATE: "1"
-
     steps:
       - name: Install prerequisites
-        run: brew install crystal-lang
+        run: curl -fsSL https://crystal-lang.org/install.sh | sudo bash -s -- --crystal=0.35.1
 
       - name: Checkout
         uses: actions/checkout@v2
