@@ -46,7 +46,9 @@ jobs:
 
     steps:
       - name: Install prerequisites
-        run: curl -fsSL https://crystal-lang.org/install.sh | sudo bash -s -- --crystal=0.35.1
+        run: |
+          curl -fsSL https://crystal-lang.org/install.sh | sudo bash -s -- --crystal=0.35.1
+          apt install -y libyaml-dev
 
       - name: Checkout
         uses: actions/checkout@v2
