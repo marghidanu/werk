@@ -37,6 +37,7 @@ jobs:
   install:
     description: Install Werk locally
     commands:
+      - echo "Installing locally..."
       - sudo cp -v ./bin/werk /usr/local/bin
     needs:
       - main
