@@ -9,11 +9,11 @@ module Werk::Command
     define_help description: "List jobs information"
 
     define_argument target : String,
-      description: ""
+      description: "Job name"
 
     define_flag config : String,
       description: "",
-      default: Path.new(Dir.current, "werk.yml").to_s,
+      default: "werk.yml",
       short: c
 
     def run
@@ -37,7 +37,7 @@ module Werk::Command
             description = job.description.empty? ? "[No description]" : job.description
 
             row border: :bottom do
-              cell name
+              cell (name == target) ? name.colorize(:blue) : name, align: :center
               cell description
               cell job.can_fail ? "Yes".colorize(:red) : "No".colorize(:green), align: :center
             end

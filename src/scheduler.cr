@@ -26,10 +26,12 @@ module Werk
           variables = Hash(String, String).new
           variables.merge!(@config.variables)
           variables.merge!(job.variables)
-          variables["WERK_SESSION_TARGET"] = target
-          variables["WERK_STAGE_ID"] = stage_id.to_s
-          variables["WERK_JOB_NAME"] = name
-          variables["WERK_JOB_DESCRIPTION"] = job.description || ""
+          variables.merge!({
+            "WERK_SESSION_TARGET"  => target,
+            "WERK_STAGE_ID"        => stage_id.to_s,
+            "WERK_JOB_NAME"        => name,
+            "WERK_JOB_DESCRIPTION" => job.description || "",
+          })
           job.variables = variables
 
           spawn do
