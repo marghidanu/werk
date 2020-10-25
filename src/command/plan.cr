@@ -34,11 +34,10 @@ module Werk::Command
 
           stage.each do |name|
             job = config.jobs[name]
-            description = job.description.empty? ? "[No description]" : job.description
 
             row border: :bottom do
               cell (name == target) ? name.colorize(:blue) : name, align: :center
-              cell description
+              cell job.description.empty? ? "[No description]" : job.description
               cell job.can_fail ? "Yes".colorize(:red) : "No".colorize(:green), align: :center
             end
           end
