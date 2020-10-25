@@ -4,7 +4,7 @@ module Werk::Executor
   class Shell < Werk::Executor::Base
     def run(name : String, job : Werk::Model::Job, context : String) : Werk::Model::JobResult
       content = [
-        "#!/bin/sh",
+        "#!/usr/bin/env sh",
         "set -o errexit",
         "set -o nounset",
       ].concat(job.commands).join("\n")
