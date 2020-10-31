@@ -3,6 +3,7 @@ require "colorize"
 
 require "../model/*"
 require "../scheduler"
+require "../utils/term"
 
 module Werk::Command
   class Run < Admiral::Command
@@ -14,7 +15,7 @@ module Werk::Command
 
     define_flag config : String,
       description: "",
-      default: Path.new(Dir.current, "werk.yml").to_s,
+      default: "werk.yml",
       short: c
 
     define_flag context : String,
@@ -26,47 +27,48 @@ module Werk::Command
       description: "",
       short: r
 
+    define_flag clear : Bool,
+      description: "Clear terminal",
+      short: l
+
     def run
       config = Werk::Model::Config.load_file(flags.config)
+
+      Werk::Utils::Term.clear_screen if flags.clear
 
       target = arguments.target || "main"
       scheduler = Werk::Scheduler.new(config)
       report = scheduler.run(target, flags.context)
 
       if flags.report
-        table = get_report_table(report)
-        puts table
-      end
-    end
+        table = Tallboy.table do
+          header do
+            cell "Name", align: :center
+            cell "Stage", align: :center
+            cell "Status", align: :center
+            cell "Exit code", align: :center
+            cell "Duration", align: :center
+            cell "Executor", align: :center
+          end
 
-    def get_report_table(report : Werk::Model::Report)
-      table = Tallboy.table do
-        header do
-          cell "Name", align: :center
-          cell "Stage", align: :center
-          cell "Status", align: :center
-          cell "Exit code", align: :center
-          cell "Duration", align: :center
-          cell "Executor", align: :center
-        end
+          report.plan.each_with_index do |stage, index|
+            stage.each do |name|
+              job = report.jobs[name]
 
-        report.plan.each_with_index do |stage, index|
-          stage.each do |name|
-            job = report.jobs[name]
-
-            row border: :bottom do
-              cell job.name
-              cell index
-              cell (job.exit_code == 0) ? "OK".colorize(:green) : "Failed".colorize(:red), align: :center
-              cell job.exit_code
-              cell sprintf("%.3f secs", job.duration)
-              cell "Shell"
+              row border: :bottom do
+                cell job.name
+                cell index
+                cell (job.exit_code == 0) ? "OK".colorize(:green) : "Failed".colorize(:red), align: :center
+                cell job.exit_code
+                cell sprintf("%.3f secs", job.duration)
+                cell "Shell"
+              end
             end
           end
         end
-      end
 
-      table
+        puts table
+      end
     end
   end
 end

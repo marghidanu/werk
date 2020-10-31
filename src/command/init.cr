@@ -7,7 +7,7 @@ module Werk::Command
 
     define_flag config : String,
       description: "",
-      default: Path.new(Dir.current, "werk.yml").to_s,
+      default: "werk.yml",
       short: c
 
     def run

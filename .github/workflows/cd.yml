@@ -32,12 +32,11 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
 
-    env:
-      HOMEBREW_NO_AUTO_UPDATE: "1"
-
     steps:
       - name: Install prerequisites
-        run: brew install crystal-lang
+        run: |
+          curl -fsSL https://crystal-lang.org/install.sh | sudo bash -s -- --crystal=0.35.1
+          sudo apt-get install -y libyaml-dev
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -73,7 +72,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           path: executables
-      
+
       - name: Print checksum
         run: |
           sha256sum ./executables/werk-macos/werk
