@@ -3,6 +3,7 @@ require "colorize"
 
 require "../model/*"
 require "../scheduler"
+require "../utils/term"
 
 module Werk::Command
   class Run < Admiral::Command
@@ -26,8 +27,14 @@ module Werk::Command
       description: "",
       short: r
 
+    define_flag clear : Bool,
+      description: "Clear terminal",
+      short: l
+
     def run
       config = Werk::Model::Config.load_file(flags.config)
+
+      Werk::Utils::Term.clear_screen if flags.clear
 
       target = arguments.target || "main"
       scheduler = Werk::Scheduler.new(config)
