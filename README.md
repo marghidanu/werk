@@ -20,11 +20,11 @@ For more information on how to get started, please check the [wiki](https://gith
 - [x] Parallel jobs execution
 - [x] Shell executor
 - [ ] Docker executor
-- [ ] SSH executor (WIP)
+- [ ] SSH executor
 - [x] Real-time output support for parallel jobs
 - [x] Simple configuration DSL based on YAML
-- [x] Execution report (Partial support)
-- [ ] Web UI for browsing the execution reports
+- [x] Execution report
+- [ ] Web UI for browsing the execution reports (?)
 
 ## Example
 
