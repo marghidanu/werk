@@ -9,6 +9,7 @@ module Werk::Utils
     # Creates a new instance that will use output to write to
     def initialize(@output : IO, @prefix : String)
       @color = Werk::Utils::Colors.instance.next_color
+      @new_line = true
     end
 
     # Does nothing, reading is disabled for this IO
@@ -22,12 +23,18 @@ module Werk::Utils
 
       return if slice.empty?
 
-      String.new(slice)
+      data = String.new(slice)
         .gsub(/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]/, "")
         .gsub("\r", "\n")
-        .each_line do |line|
-          @output.puts("[#{@prefix.colorize(@color)}]\t#{line}")
+
+      data.each_char do |char|
+        if @new_line
+          @output.print("[#{@prefix.colorize(@color)}] ")
         end
+
+        @output.print(char)
+        @new_line = (char == '\n')
+      end
     rescue ex : IO::Error
       # TODO: This is a known issue with piping
       nil
