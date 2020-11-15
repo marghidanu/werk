@@ -9,6 +9,6 @@ describe "Colors" do
       colors.next_color
     end
 
-    color.to_u8.should eq 31
+    color.to_u8.should eq 91
   end
 end
