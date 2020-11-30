@@ -12,7 +12,7 @@ module Werk::Command
       description: "Job name"
 
     define_flag config : String,
-      description: "",
+      description: "Configuration file name",
       default: "werk.yml",
       short: c
 

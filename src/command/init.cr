@@ -6,7 +6,7 @@ module Werk::Command
     define_help description: "Create empty werk config file"
 
     define_flag config : String,
-      description: "",
+      description: "Configuration file name",
       default: "werk.yml",
       short: c
 

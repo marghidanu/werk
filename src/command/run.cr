@@ -10,21 +10,21 @@ module Werk::Command
     define_help description: "Run target"
 
     define_argument target : String,
-      description: "",
+      description: "Target job name",
       default: "main"
 
     define_flag config : String,
-      description: "",
+      description: "Configuration file name",
       default: "werk.yml",
       short: c
 
     define_flag context : String,
-      description: "",
-      default: Dir.current,
+      description: "Working directory",
+      default: ".",
       short: x
 
     define_flag report : Bool,
-      description: "",
+      description: "Display execution report",
       short: r
 
     define_flag clear : Bool,
