@@ -27,20 +27,20 @@ jobs:
     runs-on: "${{ matrix.os }}"
     strategy:
       matrix:
-        os: ["macos-10.15", "macos-11.0", "ubuntu-18.04"]
+        os: ["macos-10.15", "macos-11.0", "ubuntu-18.04", "ubuntu-20.04"]
 
     steps:
       - name: Install Crystal
         uses: oprypin/install-crystal@v1
         with:
           crystal: 0.35.1
-      
+
       - name: Additional Linux dependencies
         if: contains(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update
           sudo apt-get install -y libyaml-dev
-      
+
       - name: Additional macOS dependencies
         if: contains(matrix.os, 'macos')
         run: |
@@ -62,7 +62,12 @@ jobs:
           replacements: "0.0.0=${{ github.event.release.tag_name }}"
 
       - name: Build
+        if: contains(matrix.os, 'macos')
         run: shards build --release --no-debug
+
+      - name: Build static
+        if: contains(matrix.os, 'ubuntu')
+        run: shards build --release --no-debug --static
 
       - name: Compute checksum
         run: sha256sum ./bin/werk | tee checksum.txt
