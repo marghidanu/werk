@@ -1,112 +1,78 @@
 name: CD
 
 on:
-  push:
-    tags: ["*"]
+  release:
+    types:
+      - published
 
 jobs:
-  build-macos:
-    runs-on: macos-latest
-
-    env:
-      HOMEBREW_NO_AUTO_UPDATE: "1"
+  build-docker:
+    runs-on: ubuntu-18.04
 
     steps:
-      - name: Install prerequisites
-        run: brew install crystal
-
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install dependencies
-        run: shards install
+      - name: Kaniko builder
+        uses: aevea/action-kaniko@v0.6.0
+        with:
+          image: boord/werk
+          tag: ${{ github.event.release.tag_name }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          cache: true
+          cache_registry: boord/werk
+
+  build:
+    runs-on: "${{ matrix.os }}"
+    strategy:
+      matrix:
+        os: ["macos-10.15", "macos-11.0", "ubuntu-18.04"]
+
+    steps:
+      - name: Install Crystal
+        uses: oprypin/install-crystal@v1
+        with:
+          crystal: 0.35.1
+      
+      - name: Additional Linux dependencies
+        if: contains(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libyaml-dev
+      
+      - name: Additional macOS dependencies
+        if: contains(matrix.os, 'macos')
+        run: |
+          HOMEBREW_NO_AUTO_UPDATE=1 brew install coreutils
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Replace version in shard file
+        uses: datamonsters/replace-action@v2
+        with:
+          files: "shard.yml"
+          replacements: "0.0.0=${{ github.event.release.tag_name }}"
+
+      - name: Replace version in application
+        uses: datamonsters/replace-action@v2
+        with:
+          files: "src/werk.cr"
+          replacements: "0.0.0=${{ github.event.release.tag_name }}"
 
       - name: Build
         run: shards build --release --no-debug
 
-      - uses: actions/upload-artifact@v2
-        with:
-          name: werk-macos
-          path: bin/werk
+      - name: Compute checksum
+        run: sha256sum ./bin/werk | tee checksum.txt
 
-  build-linux:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Install prerequisites
-        run: |
-          curl -fsSL https://crystal-lang.org/install.sh | sudo bash -s -- --crystal=0.35.1
-          sudo apt-get install -y libyaml-dev
-
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: shards install
-
-      - name: Build
-        run: shards build --release --no-debug --static
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: werk-linux
-          path: bin/werk
-
-  build-docker:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Docker build
-        run: docker build -t marghidanu/werk  .
-
-  release:
-    runs-on: ubuntu-latest
-    needs:
-      - build-macos
-      - build-linux
-
-    steps:
-      - uses: actions/download-artifact@v2
-        with:
-          path: executables
-
-      - name: Print checksum
-        run: |
-          sha256sum ./executables/werk-macos/werk
-          sha256sum ./executables/werk-linux/werk
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release macOS
-        id: upload-werk-macos
+      - name: Upload script
         uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./bin/werk
+          asset_name: werk-${{ matrix.os }}
+          asset_content_type: text/plain
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./executables/werk-macos/werk
-          asset_name: werk-macos
-          asset_content_type: application/octet-stream
-
-      - name: Upload Release Linux
-        id: upload-werk-linux
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./executables/werk-linux/werk
-          asset_name: werk-linux
-          asset_content_type: application/octet-stream
