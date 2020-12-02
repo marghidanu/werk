@@ -3,7 +3,7 @@ require "admiral"
 require "./command/*"
 
 module Werk
-  VERSION = "0.1.4"
+  VERSION = "0.0.0"
 
   class Application < Admiral::Command
     define_version Werk::VERSION
