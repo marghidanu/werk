@@ -72,12 +72,24 @@ jobs:
       - name: Compute checksum
         run: sha256sum ./bin/werk | tee checksum.txt
 
-      - name: Upload script
+      - name: Upload application
+        id: upload
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./bin/werk
           asset_name: werk-${{ matrix.os }}
-          asset_content_type: text/plain
+          asset_content_type: application/octet-stream
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Homebrew formula update
+        if: matrix.os == 'macos-10.15' && !contains(github.event.release.tag_name, '-')
+        env:
+          COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
+        uses: mislav/bump-homebrew-formula-action@v1
+        with:
+          formula-name: werk
+          homebrew-tap: marghidanu/homebrew-werk
+          base-branch: master
+          download-url: ${{ steps.upload.outputs.browser_download_url }}
