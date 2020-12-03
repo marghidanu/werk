@@ -18,6 +18,7 @@ jobs:
         with:
           image: boord/werk
           tag: ${{ github.event.release.tag_name }}
+          tag_with_latest: true
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
           cache: true
