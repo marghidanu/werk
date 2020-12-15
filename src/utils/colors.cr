@@ -2,7 +2,22 @@ require "colorize"
 
 module Werk::Utils
   class Colors
-    getter colors = [91, 92, 93, 94, 95, 96, 31, 32, 33, 34, 35, 36, 37, 90]
+    getter colors = [
+      Colorize::ColorANSI::LightRed,
+      Colorize::ColorANSI::LightGreen,
+      Colorize::ColorANSI::LightYellow,
+      Colorize::ColorANSI::LightBlue,
+      Colorize::ColorANSI::LightMagenta,
+      Colorize::ColorANSI::LightCyan,
+      Colorize::ColorANSI::Red,
+      Colorize::ColorANSI::Green,
+      Colorize::ColorANSI::Yellow,
+      Colorize::ColorANSI::Blue,
+      Colorize::ColorANSI::Magenta,
+      Colorize::ColorANSI::Cyan,
+      Colorize::ColorANSI::LightGray,
+      Colorize::ColorANSI::DarkGray,
+    ]
 
     def initialize
       @index = 0
@@ -10,7 +25,7 @@ module Werk::Utils
 
     def next_color : Colorize::Color
       @index = 0 if @index >= @colors.size
-      color = Colorize::ColorANSI.new(@colors[@index])
+      color = @colors[@index]
       @index += 1
 
       color
