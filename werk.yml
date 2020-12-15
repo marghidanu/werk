@@ -48,6 +48,20 @@ jobs:
       APP: /usr/local/bin/werk
     commands:
       - '[[ -f "${APP}" ]] && sudo rm -vf "${APP}" || echo "Werk is not installed!"'
+  
+  bump-version:
+    description: Update version
+    commands:
+      - >
+        if [ -z ${VERSION+x} ]; then
+          echo "Missing variable VERSION!"
+          echo "Please make sure the variable is set before running this target."
+          exit 1
+        fi
+      - echo "Updating version ..."
+      - yq w shard.yml -i version "$VERSION"
+      - sed -i .bak "s/VERSION = \".*\"/VERSION = \"${VERSION}\"/" src/version.cr && rm src/version.cr.bak
+      - echo "Done."
 
   env:
     commands:

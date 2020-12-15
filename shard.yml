@@ -1,13 +1,10 @@
 name: werk
-version: 0.0.0
-
+version: 0.1.11
 authors:
   - tudor@marghidanu.com
-
 targets:
   werk:
     main: src/werk.cr
-
 dependencies:
   admiral:
     github: jwaldrip/admiral.cr
@@ -15,7 +12,5 @@ dependencies:
   tallboy:
     github: epoch/tallboy
     version: 0.9.3
-
 crystal: 0.35.1
-
 license: MIT
