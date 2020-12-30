@@ -23,6 +23,12 @@ module Werk::Command
       default: ".",
       short: x
 
+    define_flag max_parallel_jobs : Int32,
+      description: "Max parallel jobs",
+      default: 32,
+      long: "jobs",
+      short: "j"
+
     define_flag report : Bool,
       description: "Display execution report",
       short: r
@@ -38,7 +44,7 @@ module Werk::Command
 
       target = arguments.target || "main"
       scheduler = Werk::Scheduler.new(config)
-      report = scheduler.run(target, flags.context)
+      report = scheduler.run(target, flags.context, flags.max_parallel_jobs)
 
       display_report(report) if flags.report
     end

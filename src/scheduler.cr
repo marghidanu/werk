@@ -9,8 +9,12 @@ module Werk
     end
 
     # Execute the target job and its dependencies according to he execution plan
-    def run(target : String, context : String)
+    def run(target : String, context : String, max_parallel_jobs : Int32)
       plan = self.get_plan(target)
+
+      if max_parallel_jobs < 1
+        raise "Max parallel jobs must be greater than 0!"
+      end
 
       report = Werk::Model::Report.new(
         target: target,
@@ -20,35 +24,37 @@ module Werk
       plan.each_with_index do |stage, stage_id|
         results = Channel(Werk::Model::JobResult).new
 
-        stage.each do |name|
-          job = @config.jobs[name]
+        stage.each_slice(max_parallel_jobs) do |batch|
+          batch.each do |name|
+            job = @config.jobs[name]
 
-          variables = Hash(String, String).new
-          variables.merge!(@config.variables)
-          variables.merge!(job.variables)
-          variables.merge!({
-            "WERK_SESSION_TARGET"  => target,
-            "WERK_STAGE_ID"        => stage_id.to_s,
-            "WERK_JOB_NAME"        => name,
-            "WERK_JOB_DESCRIPTION" => job.description || "",
-          })
-          job.variables = variables
+            variables = Hash(String, String).new
+            variables.merge!(@config.variables)
+            variables.merge!(job.variables)
+            variables.merge!({
+              "WERK_SESSION_TARGET"  => target,
+              "WERK_STAGE_ID"        => stage_id.to_s,
+              "WERK_JOB_NAME"        => name,
+              "WERK_JOB_DESCRIPTION" => job.description || "",
+            })
+            job.variables = variables
 
-          spawn do
-            task = Werk::Executor::Shell.new
-            result = task.run(name, job, context)
-            results.send(result)
+            spawn do
+              task = Werk::Executor::Shell.new
+              result = task.run(name, job, context)
+              results.send(result)
+            end
           end
-        end
 
-        stage.size.times do
-          result = results.receive
+          batch.size.times do
+            result = results.receive
 
-          job = @config.jobs[result.name]
-          report.jobs[result.name] = result
+            job = @config.jobs[result.name]
+            report.jobs[result.name] = result
 
-          if (result.exit_code != 0) && !job.can_fail
-            raise "Job \"#{result.name}\" failed!"
+            if (result.exit_code != 0) && !job.can_fail
+              raise "Job \"#{result.name}\" failed!"
+            end
           end
         end
       end
