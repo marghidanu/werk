@@ -62,7 +62,3 @@ jobs:
       - yq w shard.yml -i version "$VERSION"
       - sed -i .bak "s/VERSION = \".*\"/VERSION = \"${VERSION}\"/" src/version.cr && rm src/version.cr.bak
       - echo "Done."
-
-  env:
-    commands:
-      - export
