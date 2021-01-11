@@ -28,7 +28,7 @@ describe "Config" do
     temp = File.tempfile
     File.write(temp.path, "jobs: []")
 
-    expect_raises(Exception, "Parse error: #{temp.path}:1:7") do
+    expect_raises(Exception, "Parse error at line 1, column 7") do
       Werk::Model::Config.load_file(temp.path)
     end
 

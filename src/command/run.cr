@@ -16,12 +16,12 @@ module Werk::Command
     define_flag config : String,
       description: "Configuration file name",
       default: "werk.yml",
-      short: c
+      short: "c"
 
     define_flag context : String,
       description: "Working directory",
       default: ".",
-      short: x
+      short: "x"
 
     define_flag max_parallel_jobs : Int32,
       description: "Max parallel jobs",
@@ -29,16 +29,20 @@ module Werk::Command
       long: "jobs",
       short: "j"
 
+    define_flag stdin : Bool,
+      description: "Read configuration from STDIN",
+      long: "stdin"
+
     define_flag report : Bool,
       description: "Display execution report",
-      short: r
+      short: "r"
 
     define_flag clear : Bool,
       description: "Clear terminal",
-      short: l
+      short: "l"
 
     def run
-      config = Werk::Model::Config.load_file(flags.config)
+      config = (flags.stdin) ? Werk::Model::Config.load_string(STDIN.gets_to_end) : Werk::Model::Config.load_file(flags.config)
 
       Werk::Utils::Term.clear_screen if flags.clear
 
