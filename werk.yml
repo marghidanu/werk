@@ -59,6 +59,6 @@ jobs:
           exit 1
         fi
       - echo "Updating version ..."
-      - yq w shard.yml -i version "$VERSION"
+      - yq eval -i ".version = \"${VERSION}\"" shard.yml
       - sed -i .bak "s/VERSION = \".*\"/VERSION = \"${VERSION}\"/" src/version.cr && rm src/version.cr.bak
       - echo "Done."
