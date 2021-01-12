@@ -16,8 +16,12 @@ module Werk::Command
       default: "werk.yml",
       short: c
 
+    define_flag stdin : Bool,
+      description: "Read configuration from STDIN",
+      long: "stdin"
+
     def run
-      config = Werk::Model::Config.load_file(flags.config)
+      config = (flags.stdin) ? Werk::Model::Config.load_string(STDIN.gets_to_end) : Werk::Model::Config.load_file(flags.config)
 
       target = arguments.target || "main"
       plan = Werk::Scheduler.new(config)
