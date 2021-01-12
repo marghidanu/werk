@@ -20,7 +20,6 @@ For more information on how to get started, please check the [wiki](https://gith
 - [x] Parallel jobs execution
 - [x] Shell executor
 - [ ] Docker executor
-- [ ] ~SSH executor~
 - [x] Real-time output support for parallel jobs
 - [x] Simple configuration DSL based on YAML
 - [x] Execution report
@@ -65,15 +64,11 @@ jobs:
 
 after that, you can run
 
-```
-werk run
-```
+  werk run
 
 to trigger the entire build flow. You can also start individual jobs by specifying a target like this:
 
-```
-werk run lint
-```
+  werk run lint
 
 Here's another example; in this case, I'm building Werk using itself.
 
