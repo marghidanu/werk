@@ -14,7 +14,7 @@ module Werk::Command
     define_flag config : String,
       description: "Configuration file name",
       default: "werk.yml",
-      short: c
+      short: "c"
 
     define_flag stdin : Bool,
       description: "Read configuration from STDIN",
