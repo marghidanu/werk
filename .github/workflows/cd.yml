@@ -28,7 +28,7 @@ jobs:
     runs-on: "${{ matrix.os }}"
     strategy:
       matrix:
-        os: ["macos-10.15", "ubuntu-18.04", "ubuntu-20.04"]
+        os: ["macos-10.15", "ubuntu-20.04"]
 
     steps:
       - name: Install Crystal
@@ -59,7 +59,7 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./bin/werk
-          asset_name: werk-${{ matrix.os }}
+          asset_name: werk-${{ runner.os }}
           asset_content_type: application/octet-stream
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
