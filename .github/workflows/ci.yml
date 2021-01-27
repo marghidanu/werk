@@ -37,6 +37,8 @@ jobs:
         uses: aevea/action-kaniko@v0.6.0
         with:
           image: boord/werk
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
           extra_args: --no-push
 
   test:
