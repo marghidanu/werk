@@ -4,7 +4,7 @@ WORKDIR /opt/app
 COPY . .
 
 # hadolint ignore=DL3018
-RUN apk add --no-cache yaml \
+RUN apk add --no-cache yaml-dev \
     && shards build --release --no-debug --static
 
 FROM alpine:3.12
