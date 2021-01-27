@@ -3,7 +3,8 @@ FROM crystallang/crystal:0.36.0-alpine AS build
 WORKDIR /opt/app
 COPY . .
 
-RUN shards build --release --no-debug --static
+RUN apk add --no-cache yaml-dev \
+    && shards build --release --no-debug --static
 
 FROM alpine:3.12
 

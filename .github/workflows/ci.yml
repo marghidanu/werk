@@ -22,6 +22,22 @@ jobs:
 
       - name: Hadolint Action
         uses: brpaz/hadolint-action@v1.1.0
+  
+  build-docker:
+    runs-on: ubuntu-18.04
+
+    needs:
+      - quality
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Kaniko builder
+        uses: aevea/action-kaniko@v0.6.0
+        with:
+          image: boord/werk
+          extra_args: --no-push
 
   test:
     runs-on: "${{ matrix.os }}"
