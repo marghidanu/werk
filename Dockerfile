@@ -3,6 +3,7 @@ FROM crystallang/crystal:0.36.0-alpine AS build
 WORKDIR /opt/app
 COPY . .
 
+# hadolint ignore=DL3018
 RUN apk add --no-cache yaml-dev \
     && shards build --release --no-debug --static
 
