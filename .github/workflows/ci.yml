@@ -36,7 +36,7 @@ jobs:
       - name: Install Crystal
         uses: oprypin/install-crystal@v1
         with:
-          crystal: 0.35.1
+          crystal: 0.36.0
 
       - name: Additional Linux dependencies
         if: contains(matrix.os, 'ubuntu')

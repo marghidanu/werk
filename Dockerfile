@@ -1,4 +1,4 @@
-FROM crystallang/crystal:0.35.1-alpine AS build
+FROM crystallang/crystal:0.36.0-alpine AS build
 
 WORKDIR /opt/app
 COPY . .
