@@ -46,9 +46,12 @@ module Werk::Command
 
       Werk::Utils::Term.clear_screen if flags.clear
 
-      target = arguments.target || "main"
       scheduler = Werk::Scheduler.new(config)
-      report = scheduler.run(target, flags.context, flags.max_parallel_jobs)
+      report = scheduler.run(
+        target: (arguments.target || "main"),
+        context: flags.context,
+        max_parallel_jobs: flags.max_parallel_jobs
+      )
 
       display_report(report) if flags.report
     end
@@ -74,7 +77,7 @@ module Werk::Command
               cell (job.exit_code == 0) ? "OK".colorize(:green) : "Failed".colorize(:red), align: :center
               cell job.exit_code
               cell sprintf("%.3f secs", job.duration)
-              cell "Shell"
+              cell job.executor
             end
           end
         end

@@ -1,6 +1,5 @@
 require "./model/*"
 require "./utils/*"
-require "./executor/*"
 
 module Werk
   class Scheduler
@@ -16,13 +15,9 @@ module Werk
         raise "Max parallel jobs must be greater than 0!"
       end
 
-      report = Werk::Model::Report.new(
-        target: target,
-        plan: plan,
-      )
-
+      report = Werk::Model::Report.new(target: target, plan: plan)
       plan.each_with_index do |stage, stage_id|
-        results = Channel(Werk::Model::JobResult).new
+        results = Channel(Werk::Model::Report::Job).new
 
         stage.each_slice(max_parallel_jobs) do |batch|
           batch.each do |name|
@@ -40,8 +35,7 @@ module Werk
             job.variables = variables
 
             spawn do
-              task = Werk::Executor::Shell.new
-              result = task.run(name, job, context)
+              result = job.run(name, context)
               results.send(result)
             end
           end

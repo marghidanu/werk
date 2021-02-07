@@ -1,0 +1,14 @@
+version: "1.0"
+
+jobs:
+  local:
+    executor: local
+    description: "Local executor"
+    commands:
+      - echo "Hello from local!"
+
+  docker:
+    executor: docker
+    description: "Docker executor"
+    commands:
+      - echo "Hello from Docker!"
