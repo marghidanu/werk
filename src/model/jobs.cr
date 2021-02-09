@@ -104,7 +104,20 @@ module Werk::Model
         start = Time.local
         Log.debug { "Getting logs ..." }
         io = api.containers.logs(container.id, follow: true, stdout: true, stderr: true)
-        IO.copy(io, output_io)
+
+        loop do
+          # Checking if there's any more incoming data
+          break if io.peek.not_nil!.empty?
+
+          # Reading the header
+          _ = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
+          frame_size = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
+
+          # Read frame and send it to the outpit IO
+          slice = Bytes.new(frame_size)
+          io.read(slice)
+          output_io.write(slice)
+        end
 
         summary = api.containers.inspect(container.id)
         exit_code = summary.state.not_nil! ? summary.state.not_nil!.exit_code : 255
