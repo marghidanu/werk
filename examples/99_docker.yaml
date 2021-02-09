@@ -2,10 +2,10 @@ version: "1.0"
 
 jobs:
   local:
-    executor: local
-    description: "Local executor"
+    executor: shell
+    description: "Shell executor"
     commands:
-      - echo "Hello from local!"
+      - echo "Hello from shell!"
 
   docker:
     executor: docker
@@ -16,17 +16,38 @@ jobs:
     # can_fail: true
 
   quality:
-    executor: local
+    executor: shell
     needs:
       - ameba
       - hadolint
 
   kaniko:
+    executor: shell
+    needs:
+      - kaniko1
+      - kaniko2
+
+  kaniko1:
     executor: docker
     image: gcr.io/kaniko-project/executor:debug
     entrypoint: ["/busybox/sh"]
     commands:
-      - /kaniko/executor --context . --dockerfile Dockerfile --no-push
+      - >-
+        /kaniko/executor 
+        --context . 
+        --dockerfile Dockerfile 
+        --no-push
+
+  kaniko2:
+    executor: docker
+    image: gcr.io/kaniko-project/executor:debug
+    # entrypoint: ["/busybox/sh"]
+    commands:
+      - >-
+        /kaniko/executor 
+        --context . 
+        --dockerfile Dockerfile 
+        --no-push
 
   ameba:
     executor: docker
@@ -39,5 +60,15 @@ jobs:
     executor: docker
     image: hadolint/hadolint
     commands:
+      - hadolint -v
       - hadolint Dockerfile
     can_fail: true
+
+  test:
+    executor: docker
+    commands:
+      - |
+        for i in $(seq 10); do
+          echo "Iteration ${i}"
+          sleep 1
+        done

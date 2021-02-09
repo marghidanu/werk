@@ -5,22 +5,22 @@ variables:
 
 jobs:
   deps:
-    executor: local
+    executor: shell
     commands:
       - cpanm --installdeps .
 
   quality:
-    executor: local
+    executor: shell
     needs:
       - test
       - lint
 
   lint:
-    executor: local
+    executor: shell
     commands:
       - perlcritic lib t
 
   test:
-    executor: local
+    executor: shell
     commands:
       - prove -lr

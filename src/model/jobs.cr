@@ -34,7 +34,7 @@ module Werk::Model
     property executor : String
 
     use_yaml_discriminator "executor", {
-      local:  "Werk::Model::Job::Local",
+      shell:  "Werk::Model::Job::Shell",
       docker: "Werk::Model::Job::Docker",
     }
 
@@ -65,6 +65,12 @@ module Werk::Model
       File.write(script.path, content)
       File.chmod(script.path, 0o755)
 
+      buffer_io = IO::Memory.new
+      writers = Array(IO).new
+      writers << buffer_io
+      writers << Werk::Utils::PrefixIO.new(STDOUT, name) unless @silent
+      output_io = IO::MultiWriter.new(writers)
+
       client = Docr::Client.new
       api = Docr::API.new(client)
 
@@ -74,11 +80,6 @@ module Werk::Model
 
       # Create container
       Log.debug { "Creating container ..." }
-      binds = [
-        "#{script.path}:/opt/start.sh",
-        "#{Path[context].expand}:/opt/workspace",
-      ].concat(@volumes)
-
       container = api.containers.create(
         "#{name}-#{Time.utc.to_unix}",
         Docr::Types::CreateContainerConfig.new(
@@ -87,28 +88,31 @@ module Werk::Model
           cmd: ["/opt/start.sh"],
           working_dir: "/opt/workspace",
           env: @variables.map { |k, v| "#{k}=#{v}" },
-          host_config: Docr::Types::HostConfig.new(binds: binds)
+          host_config: Docr::Types::HostConfig.new(
+            binds: [
+              "#{script.path}:/opt/start.sh",
+              "#{Path[context].expand}:/opt/workspace",
+            ].concat(@volumes)
+          )
         )
       )
 
-      Log.debug { "Starting container ..." }
-      api.containers.start(container.id)
+      begin
+        Log.debug { "Starting container ..." }
+        api.containers.start(container.id)
 
-      buffer_io = IO::Memory.new
-      writers = Array(IO).new
-      writers << buffer_io
-      writers << Werk::Utils::PrefixIO.new(STDOUT, name) unless @silent
-      output_io = IO::MultiWriter.new(writers)
+        start = Time.local
+        Log.debug { "Getting logs ..." }
+        io = api.containers.logs(container.id, follow: true, stdout: true, stderr: true)
+        IO.copy(io, output_io)
 
-      Log.debug { "Getting logs ..." }
-      io = api.containers.logs(container.id, follow: true, stdout: true, stderr: true)
-      IO.copy(io, output_io)
-
-      summary = api.containers.inspect(container.id)
-      exit_code = summary.state.not_nil! ? summary.state.not_nil!.exit_code : 255
-
-      Log.debug { "Removing container ..." }
-      api.containers.delete(container.id, force: true)
+        summary = api.containers.inspect(container.id)
+        exit_code = summary.state.not_nil! ? summary.state.not_nil!.exit_code : 255
+        duration = Time.local - start
+      ensure
+        Log.debug { "Removing container ..." }
+        api.containers.delete(container.id, force: true)
+      end
 
       Werk::Model::Report::Job.new(
         name: name,
@@ -118,12 +122,12 @@ module Werk::Model
         directory: context,
         exit_code: exit_code,
         output: buffer_io.to_s,
-        duration: 0_f64
+        duration: duration.total_seconds
       )
     end
   end
 
-  class Job::Local < Job
+  class Job::Shell < Job
     def run(name : String, context : String) : Werk::Model::Report::Job
       script = File.tempfile
       content = self.get_script_content
@@ -136,6 +140,7 @@ module Werk::Model
       writers << Werk::Utils::PrefixIO.new(STDOUT, name) unless @silent
       output_io = IO::MultiWriter.new(writers)
 
+      Log.debug { "Starting Shell process ..." }
       process = Process.new(". #{script.path}",
         shell: true,
         env: @variables,

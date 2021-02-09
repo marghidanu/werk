@@ -1,3 +1,5 @@
+require "log"
+
 require "./model/*"
 require "./utils/*"
 
@@ -17,7 +19,8 @@ module Werk
 
       report = Werk::Model::Report.new(target: target, plan: plan)
       plan.each_with_index do |stage, stage_id|
-        results = Channel(Werk::Model::Report::Job).new
+        results = Channel(Werk::Model::Report::Job | Exception).new
+        exceptions = Array(Exception).new
 
         stage.each_slice(max_parallel_jobs) do |batch|
           batch.each do |name|
@@ -35,21 +38,35 @@ module Werk
             job.variables = variables
 
             spawn do
-              result = job.run(name, context)
-              results.send(result)
+              begin
+                result = job.run(name, context)
+                results.send(result)
+              rescue ex
+                results.send(ex)
+              end
             end
           end
 
           batch.size.times do
             result = results.receive
 
-            job = @config.jobs[result.name]
-            report.jobs[result.name] = result
+            case result
+            when Werk::Model::Report::Job
+              job = @config.jobs[result.name]
+              report.jobs[result.name] = result
 
-            if (result.exit_code != 0) && !job.can_fail
-              raise "Job \"#{result.name}\" failed!"
+              if (result.exit_code != 0) && !job.can_fail
+                raise "Job \"#{result.name}\" failed!"
+              end
+            when Exception
+              exceptions << result
+              Log.error { result.message }
             end
           end
+        end
+
+        unless exceptions.empty?
+          raise "Exceptions occured, exiting pipeline..."
         end
       end
 

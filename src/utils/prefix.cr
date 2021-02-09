@@ -28,10 +28,7 @@ module Werk::Utils
         .gsub("\r", "\n")
 
       data.each_char do |char|
-        if @new_line
-          @output.print("[#{@prefix.colorize(@color)}] ")
-        end
-
+        @output.print("[#{@prefix.colorize(@color)}] ") if @new_line
         @output.print(char)
         @new_line = (char == '\n')
       end

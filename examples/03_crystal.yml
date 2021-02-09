@@ -2,7 +2,7 @@ version: "1"
 
 jobs:
   main:
-    executor: local
+    executor: shell
     commands:
       - shards build
     needs:
@@ -11,23 +11,23 @@ jobs:
       - test
 
   format:
-    executor: local
+    executor: shell
     commands:
       - crystal tool format --check
     can_fail: true
 
   lint:
-    executor: local
+    executor: shell
     commands:
       - amebda
 
   test:
-    executor: local
+    executor: shell
     commands:
       - crystal spec
 
   docs:
-    executor: local
+    executor: shell
     commands:
       - crystal docs
       - open docs/index.html

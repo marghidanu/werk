@@ -3,7 +3,7 @@ version: "1"
 jobs:
   main:
     description: "Hello world"
-    executor: local
+    executor: shell
     commands:
       - echo "Hello world!"
       - date 

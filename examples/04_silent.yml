@@ -2,7 +2,7 @@ version: "1"
 
 jobs:
   main:
-    executor: local
+    executor: shell
     commands:
       - echo "This"
       - echo "...and that"
@@ -11,6 +11,6 @@ jobs:
       - other
 
   other:
-    executor: local
+    executor: shell
     commands:
       - echo "Other"
