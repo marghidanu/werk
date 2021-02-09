@@ -12,5 +12,7 @@ dependencies:
   tallboy:
     github: epoch/tallboy
     version: 0.9.3
+  docr:
+    github: marghidanu/docr
 crystal: 0.36.0
 license: MIT

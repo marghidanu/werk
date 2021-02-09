@@ -11,4 +11,33 @@ jobs:
     executor: docker
     description: "Docker executor"
     commands:
+      - pwd
       - echo "Hello from Docker!"
+    # can_fail: true
+
+  quality:
+    executor: local
+    needs:
+      - ameba
+      - hadolint
+
+  kaniko:
+    executor: docker
+    image: gcr.io/kaniko-project/executor:debug
+    entrypoint: ["/busybox/sh"]
+    commands:
+      - /kaniko/executor --context . --dockerfile Dockerfile --no-push
+
+  ameba:
+    executor: docker
+    image: veelenga/ameba
+    commands:
+      - ameba
+    can_fail: true
+
+  hadolint:
+    executor: docker
+    image: hadolint/hadolint
+    commands:
+      - hadolint Dockerfile
+    can_fail: true

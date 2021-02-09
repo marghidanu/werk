@@ -4,6 +4,10 @@ shards:
     git: https://github.com/jwaldrip/admiral.cr.git
     version: 1.11.2
 
+  docr:
+    git: https://github.com/marghidanu/docr.git
+    version: 0.1.0+git.commit.47b9aed2be5ebdcb86483ba18b4a2d972b631273
+
   tallboy:
     git: https://github.com/epoch/tallboy.git
     version: 0.9.3

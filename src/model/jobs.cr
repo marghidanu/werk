@@ -1,3 +1,5 @@
+require "docr"
+require "log"
 require "yaml"
 
 module Werk::Model
@@ -49,17 +51,73 @@ module Werk::Model
 
   class Job::Docker < Job
     @[YAML::Field(key: "image")]
-    property image : String = "alpine:latest"
+    property image = "alpine:latest"
+
+    @[YAML::Field(key: "volumes")]
+    property volumes = Array(String).new
+
+    @[YAML::Field(key: "entrypoint")]
+    property entrypoint = ["/bin/sh"]
 
     def run(name : String, context : String) : Werk::Model::Report::Job
+      script = File.tempfile
+      content = self.get_script_content
+      File.write(script.path, content)
+      File.chmod(script.path, 0o755)
+
+      client = Docr::Client.new
+      api = Docr::API.new(client)
+
+      # Pull image
+      Log.debug { "Pulling image: #{@image}" }
+      api.images.create(@image)
+
+      # Create container
+      Log.debug { "Creating container ..." }
+      binds = [
+        "#{script.path}:/opt/start.sh",
+        "#{Path[context].expand}:/opt/workspace",
+      ].concat(@volumes)
+
+      container = api.containers.create(
+        "#{name}-#{Time.utc.to_unix}",
+        Docr::Types::CreateContainerConfig.new(
+          image: @image,
+          entrypoint: @entrypoint,
+          cmd: ["/opt/start.sh"],
+          working_dir: "/opt/workspace",
+          env: @variables.map { |k, v| "#{k}=#{v}" },
+          host_config: Docr::Types::HostConfig.new(binds: binds)
+        )
+      )
+
+      Log.debug { "Starting container ..." }
+      api.containers.start(container.id)
+
+      buffer_io = IO::Memory.new
+      writers = Array(IO).new
+      writers << buffer_io
+      writers << Werk::Utils::PrefixIO.new(STDOUT, name) unless @silent
+      output_io = IO::MultiWriter.new(writers)
+
+      Log.debug { "Getting logs ..." }
+      io = api.containers.logs(container.id, follow: true, stdout: true, stderr: true)
+      IO.copy(io, output_io)
+
+      summary = api.containers.inspect(container.id)
+      exit_code = summary.state.not_nil! ? summary.state.not_nil!.exit_code : 255
+
+      Log.debug { "Removing container ..." }
+      api.containers.delete(container.id, force: true)
+
       Werk::Model::Report::Job.new(
         name: name,
         executor: @executor,
         variables: Hash(String, String).new,
-        content: "",
+        content: content,
         directory: context,
-        exit_code: 0,
-        output: "",
+        exit_code: exit_code,
+        output: buffer_io.to_s,
         duration: 0_f64
       )
     end
