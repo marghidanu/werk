@@ -2,13 +2,15 @@ version: "1"
 
 jobs:
   main:
+    executor: local
     commands:
       - echo "This"
       - echo "...and that"
     silent: true
     needs:
       - other
-  
+
   other:
+    executor: local
     commands:
       - echo "Other"

@@ -1,8 +1,12 @@
 require "yaml"
+require "uuid"
 
 module Werk::Model
   class Config
     include YAML::Serializable
+
+    @[YAML::Field(ignore: true)]
+    property session_id = UUID.random
 
     # Configuration file version.
     property version = "1"
@@ -21,18 +25,14 @@ module Werk::Model
 
     # Load configuration from file
     def self.load_file(path : String)
-      unless File.exists?(path)
-        raise "Configuration file missing!"
-      end
+      raise "Configuration file missing!" unless File.exists?(path)
 
       content = File.read(path)
       Werk::Model::Config.load_string(content)
     end
 
     def self.load_string(content : String)
-      if content.empty?
-        raise "Configuration file is empty!"
-      end
+      raise "Configuration file is empty!" if content.empty?
 
       Werk::Model::Config.from_yaml(content)
     rescue yaml_ex : YAML::ParseException

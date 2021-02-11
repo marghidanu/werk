@@ -19,11 +19,12 @@ For more information on how to get started, please check the [wiki](https://gith
 - [x] Automatic determination of the execution plan
 - [x] Parallel jobs execution
 - [x] Shell executor
-- [ ] Docker executor
+- [x] Docker executor
 - [x] Real-time output support for parallel jobs
 - [x] Simple configuration DSL based on YAML
 - [x] Execution report
 - [ ] Web UI for browsing the execution reports (?)
+- [ ] Enable logging
 
 ## Example
 
@@ -37,6 +38,7 @@ description: "Manage Werk with Werk"
 jobs:
   main:
     description: "Build application"
+    executor: local
     commands:
       - shards build
     needs:
@@ -45,17 +47,21 @@ jobs:
 
   lint:
     description: "Lint code"
+    executor: docker
+    image: veelenga/ameba
     commands:
       - ameba
     can_fail: true
 
   test:
     description: "Test code"
+    executor: local
     commands:
       - crystal spec
 
   docs:
     description: Generate API documentation
+    executor: local
     commands:
       - crystal docs
       - open docs/index.html

@@ -1,4 +1,5 @@
 require "admiral"
+require "log"
 
 require "./version"
 require "./command/*"
@@ -21,8 +22,10 @@ module Werk
 end
 
 begin
+  Log.setup_from_env
+
   Werk::Application.run
 rescue ex : Exception
-  puts(ex.message)
+  Log.error { ex.message }
   exit(1)
 end

@@ -1,0 +1,91 @@
+version: "1.0"
+
+jobs:
+  local:
+    executor: local
+    description: "Shell executor"
+    commands:
+      - echo "Hello from shell!"
+
+  docker:
+    executor: docker
+    description: "Docker executor"
+    commands:
+      - pwd
+      - echo "Hello from Docker!"
+    # can_fail: true
+
+  quality:
+    executor: local
+    needs:
+      - ameba
+      - hadolint
+
+  kaniko:
+    executor: local
+    needs:
+      - kaniko1
+      - kaniko2
+
+  kaniko1:
+    executor: docker
+    image: gcr.io/kaniko-project/executor:debug
+    entrypoint: ["/busybox/sh"]
+    commands:
+      - >-
+        /kaniko/executor 
+        --context . 
+        --dockerfile Dockerfile 
+        --no-push
+
+  kaniko2:
+    executor: docker
+    image: gcr.io/kaniko-project/executor:debug
+    # entrypoint: ["/busybox/sh"]
+    commands:
+      - >-
+        /kaniko/executor 
+        --context . 
+        --dockerfile Dockerfile 
+        --no-push
+
+  ameba:
+    executor: docker
+    image: veelenga/ameba
+    commands:
+      - ameba
+    can_fail: true
+
+  hadolint:
+    executor: docker
+    image: hadolint/hadolint
+    commands:
+      - hadolint -v
+      - hadolint Dockerfile
+    can_fail: true
+
+  counter:
+    executor: local
+    needs:
+      - counter1
+      - counter2
+
+  counter1:
+    executor: docker
+    commands:
+      - |
+        for i in $(seq 60); do
+          echo "Iteration ${i}"
+          sleep 1
+        done
+    can_fail: true
+
+  counter2:
+    executor: docker
+    commands:
+      - |
+        for i in $(seq 60); do
+          echo "Iteration ${i}"
+          sleep 1
+        done
+    can_fail: true

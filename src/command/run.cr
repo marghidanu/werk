@@ -1,5 +1,6 @@
 require "tallboy"
 require "colorize"
+require "docr"
 
 require "../model/*"
 require "../scheduler"
@@ -46,9 +47,35 @@ module Werk::Command
 
       Werk::Utils::Term.clear_screen if flags.clear
 
-      target = arguments.target || "main"
+      Signal::INT.trap do
+        client = Docr::Client.new
+        api = Docr::API.new(client)
+
+        # Retrieveing the existing containers based on a unique label for this execution
+        containers = api.containers.list(
+          filters: {
+            "label": ["com.stuffo.werk.session_id=#{config.session_id}"],
+          }
+        )
+
+        # Killing remaining containers and waiting for the execution to end
+        containers.each do |container|
+          Log.debug { "Stopping container #{container.id}" }
+          api.containers.kill(container.id, "SIGINT")
+          api.containers.wait(container.id)
+        end
+      rescue ex
+        Log.debug { ex.message }
+      ensure
+        exit(2)
+      end
+
       scheduler = Werk::Scheduler.new(config)
-      report = scheduler.run(target, flags.context, flags.max_parallel_jobs)
+      report = scheduler.run(
+        target: (arguments.target || "main"),
+        context: flags.context,
+        max_parallel_jobs: flags.max_parallel_jobs
+      )
 
       display_report(report) if flags.report
     end
@@ -66,6 +93,7 @@ module Werk::Command
 
         report.plan.each_with_index do |stage, index|
           stage.each do |name|
+            next unless report.jobs.has_key?(name)
             job = report.jobs[name]
 
             row border: :bottom do
@@ -74,7 +102,7 @@ module Werk::Command
               cell (job.exit_code == 0) ? "OK".colorize(:green) : "Failed".colorize(:red), align: :center
               cell job.exit_code
               cell sprintf("%.3f secs", job.duration)
-              cell "Shell"
+              cell job.executor
             end
           end
         end
