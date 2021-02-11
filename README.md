@@ -70,11 +70,15 @@ jobs:
 
 after that, you can run
 
-  werk run
+```
+werk run
+```
 
 to trigger the entire build flow. You can also start individual jobs by specifying a target like this:
 
-  werk run lint
+```
+werk run lint
+```
 
 Here's another example; in this case, I'm building Werk using itself.
 
