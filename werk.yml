@@ -5,7 +5,7 @@ description: "Manage Werk with Werk"
 jobs:
   main:
     description: "Build application"
-    executor: shell
+    executor: local
     commands:
       - shards build
     needs:
@@ -14,33 +14,33 @@ jobs:
 
   lint:
     description: "Lint code"
-    executor: shell
+    executor: local
     commands:
       - ameba
 
   test:
     description: "Test code"
-    executor: shell
+    executor: local
     commands:
       - crystal spec
 
   deps:
     description: "Install dependencies"
-    executor: shell
+    executor: local
     commands:
       - brew install libssh2
       - shards install
 
   docs:
     description: Generate API documentation
-    executor: shell
+    executor: local
     commands:
       - crystal docs
       - open docs/index.html
 
   install:
     description: Install Werk locally
-    executor: shell
+    executor: local
     commands:
       - echo "Installing locally..."
       - sudo cp -v ./bin/werk /usr/local/bin
@@ -49,7 +49,7 @@ jobs:
 
   uninstall:
     description: Uninstall Werk locally
-    executor: shell
+    executor: local
     variables:
       APP: /usr/local/bin/werk
     commands:
@@ -57,7 +57,7 @@ jobs:
 
   bump-version:
     description: Update version
-    executor: shell
+    executor: local
     commands:
       - >
         if [ -z ${VERSION+x} ]; then

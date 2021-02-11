@@ -2,7 +2,7 @@ version: "1.0"
 
 jobs:
   local:
-    executor: shell
+    executor: local
     description: "Shell executor"
     commands:
       - echo "Hello from shell!"
@@ -16,13 +16,13 @@ jobs:
     # can_fail: true
 
   quality:
-    executor: shell
+    executor: local
     needs:
       - ameba
       - hadolint
 
   kaniko:
-    executor: shell
+    executor: local
     needs:
       - kaniko1
       - kaniko2
@@ -65,7 +65,7 @@ jobs:
     can_fail: true
 
   counter:
-    executor: shell
+    executor: local
     needs:
       - counter1
       - counter2

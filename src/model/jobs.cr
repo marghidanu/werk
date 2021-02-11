@@ -35,7 +35,7 @@ module Werk::Model
     property executor : String
 
     use_yaml_discriminator "executor", {
-      shell:  "Werk::Model::Job::Shell",
+      local:  "Werk::Model::Job::Local",
       docker: "Werk::Model::Job::Docker",
     }
 
@@ -138,7 +138,7 @@ module Werk::Model
     end
   end
 
-  class Job::Shell < Job
+  class Job::Local < Job
     def run(session_id : UUID, name : String, context : String) : {Int32, String}
       script = File.tempfile
       content = self.get_script_content

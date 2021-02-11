@@ -38,7 +38,7 @@ description: "Manage Werk with Werk"
 jobs:
   main:
     description: "Build application"
-    executor: shell
+    executor: local
     commands:
       - shards build
     needs:
@@ -55,13 +55,13 @@ jobs:
 
   test:
     description: "Test code"
-    executor: shell
+    executor: local
     commands:
       - crystal spec
 
   docs:
     description: Generate API documentation
-    executor: shell
+    executor: local
     commands:
       - crystal docs
       - open docs/index.html
