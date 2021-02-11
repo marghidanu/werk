@@ -1,6 +1,6 @@
 # werk
 
-Dead simple task runner.
+Dead simple task runner. Now with support for Docker.
 
 ## Build status
 
@@ -74,7 +74,7 @@ after that, you can run
 werk run
 ```
 
-to trigger the entire build flow. You can also start individual jobs by specifying a target like this:
+ You can also start individual jobs by specifying a target like this:
 
 ```
 werk run lint
