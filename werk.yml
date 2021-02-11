@@ -17,7 +17,6 @@ jobs:
     executor: shell
     commands:
       - ameba
-    can_fail: true
 
   test:
     description: "Test code"

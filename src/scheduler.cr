@@ -13,14 +13,12 @@ module Werk
     def run(target : String, context : String, max_parallel_jobs : Int32)
       plan = self.get_plan(target)
 
-      if max_parallel_jobs < 1
-        raise "Max parallel jobs must be greater than 0!"
-      end
+      raise "Max parallel jobs must be greater than 0!" if max_parallel_jobs < 1
 
       report = Werk::Model::Report.new(target: target, plan: plan)
       plan.each_with_index do |stage, stage_id|
-        results = Channel(Werk::Model::Report::Job | Exception).new
-        exceptions = Array(Exception).new
+        results = Channel(Werk::Model::Report::Job).new
+        failed_jobs = Array(String).new
 
         stage.each_slice(max_parallel_jobs) do |batch|
           batch.each do |name|
@@ -30,6 +28,7 @@ module Werk
             variables.merge!(@config.variables)
             variables.merge!(job.variables)
             variables.merge!({
+              "WERK_SESSION_ID"      => @config.session_id.to_s,
               "WERK_SESSION_TARGET"  => target,
               "WERK_STAGE_ID"        => stage_id.to_s,
               "WERK_JOB_NAME"        => name,
@@ -38,36 +37,44 @@ module Werk
             job.variables = variables
 
             spawn do
+              start = Time.local
               begin
-                result = job.run(name, context)
-                results.send(result)
+                exit_code, output = job.run(@config.session_id, name, context)
               rescue ex
-                results.send(ex)
+                Log.error { "Job #{name} failed. Exception: #{ex.message}" }
+
+                # TODO: Move this outside try/catch block and make exit_code nillable
+                exit_code, output = {255, ""}
               end
+              duration = Time.local - start
+
+              results.send(
+                Werk::Model::Report::Job.new(
+                  name: name,
+                  executor: job.executor,
+                  variables: job.variables,
+                  directory: context,
+                  exit_code: exit_code,
+                  output: output,
+                  duration: duration.total_seconds,
+                )
+              )
             end
           end
 
           batch.size.times do
             result = results.receive
 
-            case result
-            when Werk::Model::Report::Job
-              job = @config.jobs[result.name]
-              report.jobs[result.name] = result
+            job = @config.jobs[result.name]
+            report.jobs[result.name] = result
 
-              if (result.exit_code != 0) && !job.can_fail
-                raise "Job \"#{result.name}\" failed!"
-              end
-            when Exception
-              exceptions << result
-              Log.error { result.message }
-            end
+            # TODO: Maybe change this to a boolean?
+            failed_jobs << result.name if (result.exit_code != 0) && !job.can_fail
           end
         end
 
-        unless exceptions.empty?
-          raise "Exceptions occured, exiting pipeline..."
-        end
+        # If any of the jobs failed, we stop the pipeline.
+        break unless failed_jobs.empty?
       end
 
       report
@@ -82,9 +89,7 @@ module Werk
     end
 
     private def traverse(name : String, graph : Werk::Utils::Graph, visited = Set(String).new)
-      unless @config.jobs[name]?
-        raise "Job #{name} is not defined!"
-      end
+      raise "Job #{name} is not defined!" unless @config.jobs[name]?
 
       return if visited.includes? name
       visited << name

@@ -1,6 +1,7 @@
 require "docr"
 require "log"
 require "yaml"
+require "uuid"
 
 module Werk::Model
   abstract class Job
@@ -46,7 +47,7 @@ module Werk::Model
       ].concat(@commands).join("\n")
     end
 
-    abstract def run(name : String, context : String) : Werk::Model::Report::Job
+    abstract def run(session_id : UUID, name : String, context : String) : {Int32, String}
   end
 
   class Job::Docker < Job
@@ -59,7 +60,7 @@ module Werk::Model
     @[YAML::Field(key: "entrypoint")]
     property entrypoint = ["/bin/sh"]
 
-    def run(name : String, context : String) : Werk::Model::Report::Job
+    def run(session_id : UUID, name : String, context : String) : {Int32, String}
       script = File.tempfile
       content = self.get_script_content
       File.write(script.path, content)
@@ -80,8 +81,9 @@ module Werk::Model
 
       # Create container
       Log.debug { "Creating container ..." }
+      container_name = "#{name}-#{session_id}"
       container = api.containers.create(
-        "#{name}-#{Time.utc.to_unix}",
+        container_name,
         Docr::Types::CreateContainerConfig.new(
           image: @image,
           entrypoint: @entrypoint,
@@ -93,18 +95,24 @@ module Werk::Model
               "#{script.path}:/opt/start.sh",
               "#{Path[context].expand}:/opt/workspace",
             ].concat(@volumes)
-          )
+          ),
+          labels: {
+            "com.stuffo.werk.name"       => "name",
+            "com.stuffo.werk.session_id" => session_id.to_s,
+          }
         )
       )
 
       begin
-        Log.debug { "Starting container ..." }
+        Log.debug { "Starting container #{container_name} ..." }
         api.containers.start(container.id)
 
-        start = Time.local
-        Log.debug { "Getting logs ..." }
+        Log.debug { "Getting logs for #{container_name} ..." }
         io = api.containers.logs(container.id, follow: true, stdout: true, stderr: true)
 
+        # Reading the logs in the Docker format.
+        # More information can be found here: https://docs.docker.com/engine/api/v1.41/#operation/ContainerAttach
+        # Look for the "Stream format" section.
         loop do
           # Checking if there's any more incoming data
           break if io.peek.not_nil!.empty?
@@ -113,35 +121,25 @@ module Werk::Model
           _ = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
           frame_size = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
 
-          # Read frame and send it to the outpit IO
+          # Read frame and send it to the output IO
           slice = Bytes.new(frame_size)
           io.read(slice)
           output_io.write(slice)
         end
 
-        summary = api.containers.inspect(container.id)
-        exit_code = summary.state.not_nil! ? summary.state.not_nil!.exit_code : 255
-        duration = Time.local - start
+        # Wait for the container execution to end and retrieve the exit code.
+        status = api.containers.wait(container.id)
       ensure
-        Log.debug { "Removing container ..." }
+        Log.debug { "Removing container #{container_name}..." }
         api.containers.delete(container.id, force: true)
       end
 
-      Werk::Model::Report::Job.new(
-        name: name,
-        executor: @executor,
-        variables: Hash(String, String).new,
-        content: content,
-        directory: context,
-        exit_code: exit_code,
-        output: buffer_io.to_s,
-        duration: duration.total_seconds
-      )
+      return {status.status_code, buffer_io.to_s}
     end
   end
 
   class Job::Shell < Job
-    def run(name : String, context : String) : Werk::Model::Report::Job
+    def run(session_id : UUID, name : String, context : String) : {Int32, String}
       script = File.tempfile
       content = self.get_script_content
       File.write(script.path, content)
@@ -162,20 +160,9 @@ module Werk::Model
         chdir: context,
       )
 
-      start = Time.local
       status = process.wait
-      duration = Time.local - start
 
-      Werk::Model::Report::Job.new(
-        name: name,
-        executor: @executor,
-        variables: @variables,
-        content: content,
-        directory: context,
-        exit_code: status.exit_code,
-        output: buffer_io.to_s,
-        duration: duration.total_seconds
-      )
+      return {status.exit_code, buffer_io.to_s}
     end
   end
 end

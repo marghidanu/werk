@@ -6,7 +6,7 @@ shards:
 
   docr:
     git: https://github.com/marghidanu/docr.git
-    version: 0.1.0+git.commit.d4b0191781a2c82971783e6878e37870490b57f3
+    version: 0.1.0+git.commit.0041188d7312864934b573818b987af8311a78f0
 
   tallboy:
     git: https://github.com/epoch/tallboy.git

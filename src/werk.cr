@@ -26,6 +26,6 @@ begin
 
   Werk::Application.run
 rescue ex : Exception
-  puts(ex.message)
+  Log.error { ex.message }
   exit(1)
 end

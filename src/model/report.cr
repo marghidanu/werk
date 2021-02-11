@@ -33,9 +33,6 @@ module Werk::Model
     # All variables passed to the job
     property variables : Hash(String, String)
 
-    # Job script content
-    property content : String
-
     # The directory in which the job was executed
     property directory : String
 
@@ -52,10 +49,10 @@ module Werk::Model
       @name,
       @executor,
       @variables,
-      @content,
       @directory,
       @exit_code,
-      @output, @duration
+      @output,
+      @duration
     )
     end
   end

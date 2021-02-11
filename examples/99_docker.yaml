@@ -64,11 +64,28 @@ jobs:
       - hadolint Dockerfile
     can_fail: true
 
-  test:
+  counter:
+    executor: shell
+    needs:
+      - counter1
+      - counter2
+
+  counter1:
     executor: docker
     commands:
       - |
-        for i in $(seq 10); do
+        for i in $(seq 60); do
           echo "Iteration ${i}"
           sleep 1
         done
+    can_fail: true
+
+  counter2:
+    executor: docker
+    commands:
+      - |
+        for i in $(seq 60); do
+          echo "Iteration ${i}"
+          sleep 1
+        done
+    can_fail: true
