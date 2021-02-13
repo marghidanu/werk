@@ -4,7 +4,6 @@ require "docr"
 
 require "../model/*"
 require "../scheduler"
-require "../utils/term"
 
 module Werk::Command
   class Run < Admiral::Command
@@ -41,11 +40,6 @@ module Werk::Command
       long: "report",
       short: "r"
 
-    define_flag clear : Bool,
-      description: "Clear terminal",
-      long: "clear",
-      short: "l"
-
     define_flag variables : Array(String),
       description: "",
       long: "env",
@@ -53,8 +47,6 @@ module Werk::Command
 
     def run
       config = (flags.stdin) ? Werk::Model::Config.load_string(STDIN.gets_to_end) : Werk::Model::Config.load_file(flags.config)
-
-      Werk::Utils::Term.clear_screen if flags.clear
 
       Signal::INT.trap do
         client = Docr::Client.new
