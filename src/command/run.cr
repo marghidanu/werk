@@ -17,11 +17,13 @@ module Werk::Command
     define_flag config : String,
       description: "Configuration file name",
       default: "werk.yml",
+      long: "config",
       short: "c"
 
     define_flag context : String,
       description: "Working directory",
       default: ".",
+      long: "context",
       short: "x"
 
     define_flag max_parallel_jobs : Int32,
@@ -36,11 +38,18 @@ module Werk::Command
 
     define_flag report : Bool,
       description: "Display execution report",
+      long: "report",
       short: "r"
 
     define_flag clear : Bool,
       description: "Clear terminal",
+      long: "clear",
       short: "l"
+
+    define_flag variables : Array(String),
+      description: "",
+      long: "env",
+      short: "e"
 
     def run
       config = (flags.stdin) ? Werk::Model::Config.load_string(STDIN.gets_to_end) : Werk::Model::Config.load_file(flags.config)
@@ -70,10 +79,18 @@ module Werk::Command
         exit(2)
       end
 
+      # Parsing additional variables
+      variables = Hash(String, String).new
+      flags.variables.each do |item|
+        data = item.match(/^(?P<name>[[:alpha:]_][[:alpha:][:digit:]_]*)=(?P<value>.*)$/)
+        variables[data["name"]] = data["value"] if data
+      end
+
       scheduler = Werk::Scheduler.new(config)
       report = scheduler.run(
         target: (arguments.target || "main"),
         context: flags.context,
+        variables: variables,
         max_parallel_jobs: flags.max_parallel_jobs
       )
 

@@ -10,7 +10,7 @@ module Werk
     end
 
     # Execute the target job and its dependencies according to he execution plan
-    def run(target : String, context : String, max_parallel_jobs : Int32)
+    def run(target : String, context : String, variables : Hash(String, String), max_parallel_jobs : Int32)
       plan = self.get_plan(target)
 
       raise "Max parallel jobs must be greater than 0!" if max_parallel_jobs < 1
@@ -24,17 +24,18 @@ module Werk
           batch.each do |name|
             job = @config.jobs[name]
 
-            variables = Hash(String, String).new
-            variables.merge!(@config.variables)
-            variables.merge!(job.variables)
-            variables.merge!({
+            vars = Hash(String, String).new
+            vars.merge!(@config.variables)
+            vars.merge!(job.variables)
+            vars.merge!(variables)
+            vars.merge!({
               "WERK_SESSION_ID"      => @config.session_id.to_s,
               "WERK_SESSION_TARGET"  => target,
               "WERK_STAGE_ID"        => stage_id.to_s,
               "WERK_JOB_NAME"        => name,
               "WERK_JOB_DESCRIPTION" => job.description || "",
             })
-            job.variables = variables
+            job.variables = vars
 
             spawn do
               start = Time.local
