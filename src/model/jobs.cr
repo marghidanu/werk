@@ -77,7 +77,8 @@ module Werk::Model
 
       # Pull image
       Log.debug { "Pulling image: #{@image}" }
-      api.images.create(@image)
+      repository, tag = Docr::Utils.parse_repository_tag(@image)
+      api.images.create(repository, tag)
 
       # Create container
       Log.debug { "Creating container ..." }
