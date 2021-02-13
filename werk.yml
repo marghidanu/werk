@@ -61,8 +61,6 @@ jobs:
     description: Update version
     executor: docker
     image: mikefarah/yq:4.5.1
-    variables:
-      VERSION: "0.4.0"
     commands:
       - >
         if [ -z ${VERSION+x} ]; then
