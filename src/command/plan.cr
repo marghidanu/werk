@@ -9,7 +9,8 @@ module Werk::Command
     define_help description: "List jobs information"
 
     define_argument target : String,
-      description: "Job name"
+      description: "Job name",
+      default: "main"
 
     define_flag config : String,
       description: "Configuration file name",
@@ -24,8 +25,7 @@ module Werk::Command
       config = (flags.stdin) ? Werk::Model::Config.load_string(STDIN.gets_to_end) : Werk::Model::Config.load_file(flags.config)
 
       target = arguments.target || "main"
-      plan = Werk::Scheduler.new(config)
-        .get_plan(target)
+      plan = Werk::Scheduler.new(config).get_plan(target)
 
       table = Tallboy.table do
         plan.each_with_index do |stage, index|

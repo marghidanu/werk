@@ -49,6 +49,7 @@ module Werk::Command
       config = (flags.stdin) ? Werk::Model::Config.load_string(STDIN.gets_to_end) : Werk::Model::Config.load_file(flags.config)
 
       Signal::INT.trap do
+        # TODO: This logic needs to sit somewhere else ...
         client = Docr::Client.new
         api = Docr::API.new(client)
 
@@ -68,7 +69,7 @@ module Werk::Command
       rescue ex
         Log.debug { ex.message }
       ensure
-        exit(2)
+        exit(1)
       end
 
       # Parsing additional variables

@@ -28,13 +28,13 @@ module Werk::Model
       raise "Configuration file missing!" unless File.exists?(path)
 
       content = File.read(path)
-      Werk::Model::Config.load_string(content)
+      self.load_string(content)
     end
 
     def self.load_string(content : String)
       raise "Configuration file is empty!" if content.empty?
 
-      Werk::Model::Config.from_yaml(content)
+      self.from_yaml(content)
     rescue yaml_ex : YAML::ParseException
       raise "Parse error at line #{yaml_ex.line_number}, column #{yaml_ex.column_number}"
     end
