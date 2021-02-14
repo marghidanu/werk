@@ -18,7 +18,7 @@ module Werk
       report = Werk::Model::Report.new(target: target, plan: plan)
       plan.each_with_index do |stage, stage_id|
         results = Channel(Werk::Model::Report::Job).new
-        failed_jobs = Array(String).new
+        exit_pipeline = false
 
         stage.each_slice(max_parallel_jobs) do |batch|
           batch.each do |name|
@@ -69,13 +69,13 @@ module Werk
             job = @config.jobs[result.name]
             report.jobs[result.name] = result
 
-            # TODO: Maybe change this to a boolean?
-            failed_jobs << result.name if (result.exit_code != 0) && !job.can_fail
+            # Determining if we need to stop the pipeline
+            exit_pipeline = (result.exit_code != 0) && !job.can_fail
           end
         end
 
         # If any of the jobs failed, we stop the pipeline.
-        break unless failed_jobs.empty?
+        break if exit_pipeline
       end
 
       report

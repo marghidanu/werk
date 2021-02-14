@@ -18,7 +18,6 @@ jobs:
     image: veelenga/ameba
     commands:
       - ameba
-    can_fail: true
 
   test:
     description: "Test code"
