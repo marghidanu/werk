@@ -32,14 +32,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Kaniko builder
-        uses: aevea/action-kaniko@v0.6.0
-        with:
-          image: boord/werk
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-          extra_args: --no-push
+      
+      - name: Build Docker image
+        run: docker build -t boord/werk .
 
   test:
     runs-on: "${{ matrix.os }}"
