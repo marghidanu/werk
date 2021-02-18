@@ -16,9 +16,8 @@ jobs:
       - name: Build Docker image
         run: |
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-          docker build -t boord/werk:${{ github.event.release.tag_name }} .
-          docker tag boord/werk:${{ github.event.release.tag_name }} boord/werk:latest
-          docker push boord/werk:${{ github.event.release.tag_name }} boord/werk:latest
+          docker build -t boord/werk:${{ github.event.release.tag_name }} -t boord/werk:latest .
+          docker push --all-tags boord/werk
 
   build:
     runs-on: "${{ matrix.os }}"
