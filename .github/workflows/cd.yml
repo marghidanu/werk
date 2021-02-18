@@ -12,17 +12,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Kaniko builder
-        uses: aevea/action-kaniko@v0.6.0
-        with:
-          image: boord/werk
-          tag: ${{ github.event.release.tag_name }}
-          tag_with_latest: true
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-          cache: true
-          cache_registry: boord/werk
+      
+      - name: Build Docker image
+        run: |
+          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+          docker build -t boord/werk:${{ github.event.release.tag_name }} .
+          docker tag boord/werk:${{ github.event.release.tag_name }} boord/werk:latest
+          docker push boord/werk:${{ github.event.release.tag_name }} boord/werk:latest
 
   build:
     runs-on: "${{ matrix.os }}"
