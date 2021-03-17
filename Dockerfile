@@ -1,5 +1,7 @@
 FROM crystallang/crystal:0.36.1-alpine AS build
 
+RUN apk add --no-cache yaml-static
+
 WORKDIR /opt/app
 COPY . .
 

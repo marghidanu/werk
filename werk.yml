@@ -39,6 +39,12 @@ jobs:
       - crystal docs
       - open docs/index.html
 
+  docker:
+    description: Docker build
+    executor: local
+    commands:
+      - docker build -t werk .
+
   install:
     description: Install Werk locally
     executor: local
