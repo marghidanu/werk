@@ -13,11 +13,24 @@ jobs:
       - test
 
   lint:
+    executor: local
+    needs:
+      - lint-crystal
+      - lint-dockerfile
+
+  lint-crystal:
     description: "Lint code"
     executor: docker
     image: veelenga/ameba
     commands:
       - ameba
+  
+  lint-dockerfile:
+    description: Lint Dockerfile
+    executor: docker
+    image: hadolint/hadolint:latest-alpine
+    commands:
+      - hadolint Dockerfile
 
   test:
     description: "Test code"
