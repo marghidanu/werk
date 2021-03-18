@@ -6,26 +6,52 @@ jobs:
   main:
     description: "Build application"
     executor: local
+    needs:
+      - build:local
+
+  build:
+    executor: local
+    needs:
+      - build:local
+      - build:docker
+
+  build:local:
+    executor: local
     commands:
       - shards build
+    needs:
+      - qa
+
+  build:docker:
+    description: Docker build
+    executor: local
+    commands:
+      - docker build -t werk .
+    needs:
+      - qa
+
+  qa:
+    description: Linters and tests
+    executor: local
     needs:
       - lint
       - test
 
   lint:
+    description: "Lint everything"
     executor: local
     needs:
-      - lint-crystal
-      - lint-dockerfile
+      - lint:crystal
+      - lint:dockerfile
 
-  lint-crystal:
+  lint:crystal:
     description: "Lint code"
     executor: docker
     image: veelenga/ameba
     commands:
       - ameba
   
-  lint-dockerfile:
+  lint:dockerfile:
     description: Lint Dockerfile
     executor: docker
     image: hadolint/hadolint:latest-alpine
@@ -38,25 +64,12 @@ jobs:
     commands:
       - crystal spec
 
-  deps:
-    description: "Install dependencies"
-    executor: local
-    commands:
-      - brew install libssh2
-      - shards install
-
   docs:
     description: Generate API documentation
     executor: local
     commands:
       - crystal docs
       - open docs/index.html
-
-  docker:
-    description: Docker build
-    executor: local
-    commands:
-      - docker build -t werk .
 
   install:
     description: Install Werk locally
@@ -75,7 +88,7 @@ jobs:
     commands:
       - '[[ -f "${APP}" ]] && sudo rm -vf "${APP}" || echo "Werk is not installed!"'
 
-  bump-version:
+  version:
     description: Update version
     executor: docker
     image: mikefarah/yq:4.5.1
