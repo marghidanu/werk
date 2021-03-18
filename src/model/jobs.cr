@@ -2,6 +2,7 @@ require "docr"
 require "log"
 require "yaml"
 require "uuid"
+require "digest/md5"
 
 module Werk::Model
   abstract class Job
@@ -82,7 +83,7 @@ module Werk::Model
 
       # Create container
       Log.debug { "Creating container ..." }
-      container_name = "#{name}-#{session_id}"
+      container_name = "#{Digest::MD5.hexdigest(name)}-#{session_id}"
       container = api.containers.create(
         container_name,
         Docr::Types::CreateContainerConfig.new(
