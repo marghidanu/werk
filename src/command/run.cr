@@ -48,29 +48,8 @@ module Werk::Command
     def run
       config = (flags.stdin) ? Werk::Model::Config.load_string(STDIN.gets_to_end) : Werk::Model::Config.load_file(flags.config)
 
-      Signal::INT.trap do
-        # TODO: This logic needs to sit somewhere else ...
-        client = Docr::Client.new
-        api = Docr::API.new(client)
-
-        # Retrieveing the existing containers based on a unique label for this execution
-        containers = api.containers.list(
-          filters: {
-            "label": ["com.stuffo.werk.session_id=#{config.session_id}"],
-          }
-        )
-
-        # Killing remaining containers and waiting for the execution to end
-        containers.each do |container|
-          Log.debug { "Stopping container #{container.id}" }
-          api.containers.kill(container.id, "SIGINT")
-          api.containers.wait(container.id)
-        end
-      rescue ex
-        Log.debug { ex.message }
-      ensure
-        exit(1)
-      end
+      Signal::INT.trap { cleanup(config.session_id) }
+      Signal::TERM.trap { cleanup(config.session_id) }
 
       # Parsing additional variables
       variables = Hash(String, String).new
@@ -119,6 +98,30 @@ module Werk::Command
       end
 
       puts table
+    end
+
+    def cleanup(session_id : UUID)
+      # TODO: This logic needs to sit somewhere else ...
+      client = Docr::Client.new
+      api = Docr::API.new(client)
+
+      # Retrieveing the existing containers based on a unique label for this execution
+      containers = api.containers.list(
+        filters: {
+          "label": ["com.stuffo.werk.session_id=#{session_id}"],
+        }
+      )
+
+      # Killing remaining containers and waiting for the execution to end
+      containers.each do |container|
+        Log.debug { "Stopping container #{container.id}" }
+        api.containers.kill(container.id, "SIGINT")
+        api.containers.wait(container.id)
+      end
+    rescue ex
+      Log.debug { ex.message }
+    ensure
+      exit(1)
     end
   end
 end
