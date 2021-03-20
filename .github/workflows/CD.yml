@@ -8,6 +8,7 @@ on:
 jobs:
   build-docker:
     runs-on: ubuntu-18.04
+    if: "!contains(github.event.release.tag_name, '-')"
 
     steps:
       - name: Checkout code
