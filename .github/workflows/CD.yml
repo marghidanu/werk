@@ -46,7 +46,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install dependencies
-        run: shards install --production
+        run: shards install --production --ignore-crystal-version
 
       - name: Build
         if: contains(matrix.os, 'macos')

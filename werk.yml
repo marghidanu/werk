@@ -18,6 +18,7 @@ jobs:
   build:local:
     executor: local
     commands:
+      - shards install --ignore-crystal-version
       - shards build
     needs:
       - qa
