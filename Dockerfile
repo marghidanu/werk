@@ -1,4 +1,4 @@
-FROM crystallang/crystal:0.36.1-alpine AS build
+FROM crystallang/crystal:1.0.0-alpine AS build
 
 # hadolint ignore=DL3018
 RUN apk add --no-cache yaml-static
