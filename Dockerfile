@@ -1,7 +1,8 @@
-FROM crystallang/crystal:1.0.0-alpine AS build
+FROM alpine:3.13 AS build
 
 # hadolint ignore=DL3018
-RUN apk add --no-cache yaml-static
+RUN sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories \
+    && apk add --no-cache build-base crystal shards libressl-dev yaml-static zlib-static
 
 WORKDIR /opt/app
 COPY . .
@@ -9,7 +10,7 @@ COPY . .
 RUN shards install --production --ignore-crystal-version \
     && shards build --release --no-debug --static
 
-FROM alpine:3.12
+FROM alpine:3.13
 
 COPY --from=build /opt/app/bin/werk /usr/local/bin/
 
