@@ -4,8 +4,8 @@ require "colorize"
 require "../model/*"
 require "../scheduler"
 
-module Werk::Command
-  class Plan < Admiral::Command
+module Werk
+  class Command::Plan < Admiral::Command
     define_help description: "List jobs information"
 
     define_argument target : String,

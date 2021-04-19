@@ -1,6 +1,6 @@
-module Werk::Utils
+module Werk
   # Minimal implementation for a Directed Acyclic Graph.
-  class Graph
+  class Utils::Graph
     # Creates a new empty graph. The implementation uses an adjacency list representation for the graph.
     def initialize
       @adjacency_list = Hash(String, Set(String)).new

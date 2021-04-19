@@ -4,8 +4,8 @@ require "yaml"
 require "uuid"
 require "digest/md5"
 
-module Werk::Model
-  abstract class Job
+module Werk
+  abstract class Model::Job
     include YAML::Serializable
 
     # The description for the job
@@ -51,7 +51,7 @@ module Werk::Model
     abstract def run(session_id : UUID, name : String, context : String) : {Int32, String}
   end
 
-  class Job::Docker < Job
+  class Model::Job::Docker < Model::Job
     @[YAML::Field(key: "image")]
     property image = "alpine:latest"
 
@@ -140,7 +140,7 @@ module Werk::Model
     end
   end
 
-  class Job::Local < Job
+  class Model::Job::Local < Model::Job
     def run(session_id : UUID, name : String, context : String) : {Int32, String}
       script = File.tempfile
       content = self.get_script_content

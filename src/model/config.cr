@@ -1,8 +1,8 @@
 require "yaml"
 require "uuid"
 
-module Werk::Model
-  class Config
+module Werk
+  class Model::Config
     include YAML::Serializable
 
     @[YAML::Field(ignore: true)]

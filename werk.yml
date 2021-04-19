@@ -51,11 +51,10 @@ jobs:
     image: veelenga/ameba
     commands:
       - ameba
-  
+
   lint:dockerfile:
     description: Lint Dockerfile
-    executor: docker
-    image: hadolint/hadolint:latest-alpine
+    executor: local
     commands:
       - hadolint Dockerfile
 
@@ -102,5 +101,5 @@ jobs:
         fi
       - echo "Updating version ${VERSION} ..."
       - yq eval -i ".version = \"${VERSION}\"" shard.yml
-      - sed -i "s/VERSION = \".*\"/VERSION = \"${VERSION}\"/" src/version.cr
+      - sed -i "s/VERSION = \".*\"/VERSION = \"${VERSION}\"/" src/werk.cr
       - echo "Done."
