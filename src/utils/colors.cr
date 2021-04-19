@@ -1,7 +1,7 @@
 require "colorize"
 
-module Werk::Utils
-  class Colors
+module Werk
+  class Utils::Colors
     getter colors = [
       Colorize::ColorANSI::LightRed,
       Colorize::ColorANSI::LightGreen,

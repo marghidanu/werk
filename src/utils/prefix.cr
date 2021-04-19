@@ -2,8 +2,8 @@ require "colorize"
 
 require "./colors"
 
-module Werk::Utils
-  class PrefixIO < IO
+module Werk
+  class Utils::PrefixIO < IO
     @color : Colorize::Color
 
     # Creates a new instance that will use output to write to
