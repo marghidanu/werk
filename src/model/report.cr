@@ -1,7 +1,7 @@
 require "json"
 
-module Werk::Model
-  class Report
+module Werk
+  class Model::Report
     include JSON::Serializable
 
     # Unix epoch when this report was created
@@ -21,7 +21,7 @@ module Werk::Model
     end
   end
 
-  class Report::Job
+  class Model::Report::Job
     include JSON::Serializable
 
     # Job name

@@ -5,8 +5,8 @@ require "docr"
 require "../model/*"
 require "../scheduler"
 
-module Werk::Command
-  class Run < Admiral::Command
+module Werk
+  class Command::Run < Admiral::Command
     define_help description: "Run target"
 
     define_argument target : String,
