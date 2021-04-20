@@ -6,6 +6,8 @@ require "../executor"
 
 module Werk
   class Executor::Docker < Werk::Executor
+    Log = ::Log.for(self)
+
     def run(job : Werk::Model::Job, session_id : UUID, name : String, context : String) : {Int32, String}
       job = job.as(Werk::Model::Job::Docker)
 
@@ -13,6 +15,7 @@ module Werk
       content = job.get_script_content
       File.write(script.path, content)
       File.chmod(script.path, 0o755)
+      Log.debug { "Created temporary script file #{script.path}" }
 
       buffer_io = IO::Memory.new
       writers = Array(IO).new
@@ -24,13 +27,13 @@ module Werk
       api = Docr::API.new(client)
 
       # Pull image
-      Log.debug { "Pulling image: #{job.image}" }
+      Log.debug { "Pulling image '#{job.image}'" }
       repository, tag = Docr::Utils.parse_repository_tag(job.image)
       api.images.create(repository, tag)
 
       # Create container
-      Log.debug { "Creating container ..." }
       container_name = "#{Digest::MD5.hexdigest(name)}-#{session_id}"
+      Log.debug { "Creating container '#{container_name}'" }
       container = api.containers.create(
         container_name,
         Docr::Types::CreateContainerConfig.new(
@@ -53,10 +56,10 @@ module Werk
       )
 
       begin
-        Log.debug { "Starting container #{container_name} ..." }
+        Log.debug { "Starting container '#{container_name}'" }
         api.containers.start(container.id)
 
-        Log.debug { "Getting logs for #{container_name} ..." }
+        Log.debug { "Streaming logs for '#{container_name}'" }
         io = api.containers.logs(container.id, follow: true, stdout: true, stderr: true)
 
         # Reading the logs in the Docker format.
@@ -79,7 +82,7 @@ module Werk
         # Wait for the container execution to end and retrieve the exit code.
         status = api.containers.wait(container.id)
       ensure
-        Log.debug { "Removing container #{container_name}..." }
+        Log.debug { "Removing container '#{container_name}'" }
         api.containers.delete(container.id, force: true)
       end
 

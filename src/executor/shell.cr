@@ -1,7 +1,11 @@
+require "log"
+
 require "../executor"
 
 module Werk
   class Executor::Shell < Werk::Executor
+    Log = ::Log.for(self)
+
     def run(job : Werk::Model::Job, session_id : UUID, name : String, context : String) : {Int32, String}
       job = job.as(Werk::Model::Job::Local)
 
@@ -9,6 +13,7 @@ module Werk
       content = job.get_script_content
       File.write(script.path, content)
       File.chmod(script.path, 0o755)
+      Log.debug { "Created temporary script file #{script.path}" }
 
       buffer_io = IO::Memory.new
       writers = Array(IO).new

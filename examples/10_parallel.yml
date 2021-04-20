@@ -1,0 +1,54 @@
+version: "1"
+
+jobs:
+  main:
+    executor: local
+    commands:
+      - echo "Done"
+      - gugugaga
+    needs:
+      - child1
+      - child2
+      - child3
+      - child4
+      - child5
+
+  child1:
+    executor: local
+    commands:
+      - echo "I am '${WERK_JOB_NAME}'"
+    needs:
+      - pre
+
+  child2:
+    executor: local
+    commands:
+      - echo "I am '${WERK_JOB_NAME}'"
+    needs:
+      - pre
+
+  child3:
+    executor: local
+    commands:
+      - echo "I am '${WERK_JOB_NAME}'"
+    needs:
+      - pre
+
+  child4:
+    executor: local
+    commands:
+      - echo "I am '${WERK_JOB_NAME}'"
+    needs:
+      - pre
+
+  child5:
+    executor: local
+    commands:
+      - echo "I am '${WERK_JOB_NAME}'"
+    needs:
+      - pre
+  pre:
+    executor: docker
+    commands:
+      - echo "Prerequisites"
+      - for i in $(seq 10); do echo "Iteration ${i}"; sleep 1; done

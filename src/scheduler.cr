@@ -7,6 +7,8 @@ require "./executor/*"
 
 module Werk
   class Scheduler
+    Log = ::Log.for(self)
+
     getter session_id = UUID.random
 
     # Initialize the Scheduler based on the configuration object
@@ -15,17 +17,20 @@ module Werk
 
     # Execute the target job and its dependencies according to he execution plan
     def run(target : String, context : String, variables : Hash(String, String), max_parallel_jobs : Int32)
+      Log.debug { "Retrieve execution plan for '#{target}'" }
       plan = self.get_plan(target)
 
       raise "Max parallel jobs must be greater than 0!" if max_parallel_jobs < 1
+      Log.debug { "Running scheduler with max_parallel_jobs set to #{max_parallel_jobs}" }
 
       report = Werk::Model::Report.new(target: target, plan: plan)
       plan.each_with_index do |stage, stage_id|
         results = Channel(Werk::Model::Report::Job).new
         exit_pipeline = false
 
+        batch_id = 0
         stage.each_slice(max_parallel_jobs) do |batch|
-          batch.each do |name|
+          batch.each_with_index do |name, job_id|
             job = @config.jobs[name]
 
             vars = Hash(String, String).new
@@ -53,11 +58,11 @@ module Werk
             spawn do
               start = Time.local
               begin
+                Log.debug { "> Begin execution '#{name}' (#{stage_id}:#{batch_id}:#{job_id})" }
                 exit_code, output = executor.run(job, @session_id, name, context)
+                Log.debug { "< End execution '#{name}' (#{stage_id}:#{batch_id}:#{job_id})" }
               rescue ex
                 Log.error { "Job #{name} failed. Exception: #{ex.message}" }
-
-                # TODO: Move this outside try/catch block and make exit_code nillable
                 exit_code, output = {255, ""}
               end
               duration = Time.local - start
@@ -78,17 +83,21 @@ module Werk
 
           batch.size.times do
             result = results.receive
-
             job = @config.jobs[result.name]
             report.jobs[result.name] = result
 
             # Determining if we need to stop the pipeline
             exit_pipeline = (result.exit_code != 0) && !job.can_fail
           end
+
+          batch_id += 1
         end
 
         # If any of the jobs failed, we stop the pipeline.
-        break if exit_pipeline
+        if exit_pipeline
+          Log.debug { "Exiting pipeline ahead of time!" }
+          break
+        end
       end
 
       report

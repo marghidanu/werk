@@ -1,3 +1,4 @@
+require "log"
 require "tallboy"
 require "colorize"
 require "docr"
@@ -7,6 +8,8 @@ require "../scheduler"
 
 module Werk
   class Command::Run < Admiral::Command
+    Log = ::Log.for(self)
+
     define_help description: "Run target"
 
     define_argument target : String,
@@ -56,8 +59,16 @@ module Werk
       end
 
       scheduler = Werk::Scheduler.new(config)
-      Signal::INT.trap { cleanup(scheduler.session_id) }
-      Signal::TERM.trap { cleanup(scheduler.session_id) }
+
+      Signal::INT.trap {
+        Log.debug { "Captured SIGINT!" }
+        cleanup(scheduler.session_id)
+      }
+
+      Signal::TERM.trap {
+        Log.debug { "Captured SIGTERM!" }
+        cleanup(scheduler.session_id)
+      }
 
       report = scheduler.run(
         target: (arguments.target || "main"),
@@ -106,6 +117,7 @@ module Werk
       api = Docr::API.new(client)
 
       # Retrieveing the existing containers based on a unique label for this execution
+      Log.debug { "Retrieve a list of running containers" }
       containers = api.containers.list(
         filters: {
           "label": ["com.stuffo.werk.session_id=#{session_id}"],
@@ -114,7 +126,7 @@ module Werk
 
       # Killing remaining containers and waiting for the execution to end
       containers.each do |container|
-        Log.debug { "Stopping container #{container.id}" }
+        Log.debug { "Stopping container '#{container.id}'" }
         api.containers.kill(container.id, "SIGINT")
         api.containers.wait(container.id)
       end
