@@ -28,9 +28,9 @@ module Werk
       long: "context",
       short: "x"
 
-    define_flag max_parallel_jobs : Int32,
+    define_flag max_jobs : UInt32,
       description: "Max parallel jobs",
-      default: 32,
+      default: 32_u32,
       long: "jobs",
       short: "j"
 
@@ -58,6 +58,12 @@ module Werk
         variables[data["name"]] = data["value"] if data
       end
 
+      max_jobs = flags.max_jobs
+      if !config.max_jobs.nil?
+        max_jobs = config.max_jobs.not_nil!
+        Log.debug { "Configuration has set the max_jobs to #{max_jobs}" }
+      end
+
       scheduler = Werk::Scheduler.new(config)
 
       Signal::INT.trap {
@@ -74,7 +80,7 @@ module Werk
         target: (arguments.target || "main"),
         context: flags.context,
         variables: variables,
-        max_parallel_jobs: flags.max_parallel_jobs
+        max_jobs: max_jobs
       )
 
       display_report(report) if flags.report
@@ -123,6 +129,8 @@ module Werk
           "label": ["com.stuffo.werk.session_id=#{session_id}"],
         }
       )
+
+      Log.debug { "Killing #{containers.size} containers..." }
 
       # Killing remaining containers and waiting for the execution to end
       containers.each do |container|
