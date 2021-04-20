@@ -23,7 +23,10 @@ module Werk
 end
 
 begin
-  Log.setup_from_env
+  Log.setup_from_env(
+    default_sources: "werk.*",
+    log_level_env: "WERK_LOG_LEVEL",
+  )
 
   Werk::Application.run
 rescue ex : Exception

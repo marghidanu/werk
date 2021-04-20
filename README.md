@@ -24,7 +24,7 @@ For more information on how to get started, please check the [wiki](https://gith
 - [x] Simple configuration DSL based on YAML
 - [x] Execution report
 - [ ] Web UI for browsing the execution reports (?)
-- [ ] Enable logging
+- [x] Enable logging
 
 ## Example
 
