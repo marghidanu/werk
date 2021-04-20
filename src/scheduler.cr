@@ -2,6 +2,7 @@ require "log"
 
 require "./model/*"
 require "./utils/*"
+require "./executor/*"
 
 module Werk
   class Scheduler
@@ -37,10 +38,19 @@ module Werk
             })
             job.variables = vars
 
+            case job
+            when Werk::Model::Job::Docker
+              executor = Werk::Executor::Docker.new
+            when Werk::Model::Job::Local
+              executor = Werk::Executor::Shell.new
+            else
+              raise "Unknown executor type!"
+            end
+
             spawn do
               start = Time.local
               begin
-                exit_code, output = job.run(@config.session_id, name, context)
+                exit_code, output = executor.run(job, @config.session_id, name, context)
               rescue ex
                 Log.error { "Job #{name} failed. Exception: #{ex.message}" }
 
