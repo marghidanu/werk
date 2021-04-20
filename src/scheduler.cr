@@ -1,3 +1,4 @@
+require "uuid"
 require "log"
 
 require "./model/*"
@@ -6,6 +7,8 @@ require "./executor/*"
 
 module Werk
   class Scheduler
+    getter session_id = UUID.random
+
     # Initialize the Scheduler based on the configuration object
     def initialize(@config : Werk::Model::Config)
     end
@@ -30,7 +33,7 @@ module Werk
             vars.merge!(job.variables)
             vars.merge!(variables)
             vars.merge!({
-              "WERK_SESSION_ID"      => @config.session_id.to_s,
+              "WERK_SESSION_ID"      => @session_id.to_s,
               "WERK_SESSION_TARGET"  => target,
               "WERK_STAGE_ID"        => stage_id.to_s,
               "WERK_JOB_NAME"        => name,
@@ -50,7 +53,7 @@ module Werk
             spawn do
               start = Time.local
               begin
-                exit_code, output = executor.run(job, @config.session_id, name, context)
+                exit_code, output = executor.run(job, @session_id, name, context)
               rescue ex
                 Log.error { "Job #{name} failed. Exception: #{ex.message}" }
 

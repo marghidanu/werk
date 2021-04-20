@@ -48,9 +48,6 @@ module Werk
     def run
       config = (flags.stdin) ? Werk::Model::Config.load_string(STDIN.gets_to_end) : Werk::Model::Config.load_file(flags.config)
 
-      Signal::INT.trap { cleanup(config.session_id) }
-      Signal::TERM.trap { cleanup(config.session_id) }
-
       # Parsing additional variables
       variables = Hash(String, String).new
       flags.variables.each do |item|
@@ -59,6 +56,9 @@ module Werk
       end
 
       scheduler = Werk::Scheduler.new(config)
+      Signal::INT.trap { cleanup(scheduler.session_id) }
+      Signal::TERM.trap { cleanup(scheduler.session_id) }
+
       report = scheduler.run(
         target: (arguments.target || "main"),
         context: flags.context,
