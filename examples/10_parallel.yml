@@ -5,7 +5,6 @@ jobs:
     executor: local
     commands:
       - echo "Done"
-      - gugugaga
     needs:
       - child1
       - child2
