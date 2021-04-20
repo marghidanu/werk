@@ -1,28 +1,24 @@
 require "yaml"
-require "uuid"
 
 module Werk
   class Model::Config
     include YAML::Serializable
 
-    @[YAML::Field(ignore: true)]
-    property session_id = UUID.random
-
     # Configuration file version.
     @[YAML::Field(key: "version")]
-    property version = "1"
+    getter version = "1"
 
     # Description for the configuration file
     @[YAML::Field(key: "description")]
-    property description = ""
+    getter description = ""
 
     # List of global variables
     @[YAML::Field(key: "variables")]
-    property variables = Hash(String, String).new
+    getter variables = Hash(String, String).new
 
     # Jobs available in the current configuration
     @[YAML::Field(key: "jobs")]
-    property jobs = Hash(String, Werk::Model::Job).new
+    getter jobs = Hash(String, Werk::Model::Job).new
 
     def initialize(@description, @jobs)
     end
@@ -49,7 +45,7 @@ module Werk
 
     # The description for the job
     @[YAML::Field(key: "description")]
-    property description = ""
+    getter description = ""
 
     # A list of variables to be passed to the job
     @[YAML::Field(key: "variables")]
@@ -57,22 +53,22 @@ module Werk
 
     # List commands
     @[YAML::Field(key: "commands")]
-    property commands = Array(String).new
+    getter commands = Array(String).new
 
     # Dependencies list
     @[YAML::Field(key: "needs")]
-    property needs = Array(String).new
+    getter needs = Array(String).new
 
     # Signals if the job is allowed to fail or not.
     @[YAML::Field(key: "can_fail")]
-    property can_fail = false
+    getter can_fail = false
 
     # Suppress job output to STDOUT
     @[YAML::Field(key: "silent")]
-    property silent = false
+    getter silent = false
 
     @[YAML::Field(key: "executor")]
-    property executor : String
+    getter executor : String
 
     use_yaml_discriminator "executor", {
       local:  "Werk::Model::Job::Local",
@@ -82,21 +78,19 @@ module Werk
     def get_script_content
       [
         "#!/usr/bin/env sh",
-        "set -o errexit",
-        "set -o nounset",
       ].concat(@commands).join("\n")
     end
   end
 
   class Model::Job::Docker < Model::Job
     @[YAML::Field(key: "image")]
-    property image = "alpine:latest"
+    getter image = "alpine:latest"
 
     @[YAML::Field(key: "volumes")]
-    property volumes = Array(String).new
+    getter volumes = Array(String).new
 
     @[YAML::Field(key: "entrypoint")]
-    property entrypoint = ["/bin/sh"]
+    getter entrypoint = ["/bin/sh"]
   end
 
   class Model::Job::Local < Model::Job

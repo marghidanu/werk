@@ -5,16 +5,16 @@ module Werk
     include JSON::Serializable
 
     # Unix epoch when this report was created
-    property created : Int64
+    getter created : Int64
 
     # Target job name
-    property target : String
+    getter target : String
 
     # Execution plan
-    property plan : Array(Array(String))
+    getter plan : Array(Array(String))
 
     # Jobs results
-    property jobs = Hash(String, Werk::Model::Report::Job).new
+    getter jobs = Hash(String, Werk::Model::Report::Job).new
 
     def initialize(@target, @plan)
       @created = Time.local.to_unix_ms
@@ -25,25 +25,25 @@ module Werk
     include JSON::Serializable
 
     # Job name
-    property name : String
+    getter name : String
 
     # Executor type
-    property executor : String
+    getter executor : String
 
     # All variables passed to the job
-    property variables : Hash(String, String)
+    getter variables : Hash(String, String)
 
     # The directory in which the job was executed
-    property directory : String
+    getter directory : String
 
     # Execution exit code
-    property exit_code : Int32
+    getter exit_code : Int32
 
     # Job output (stdout & sterr combined)
-    property output : String
+    getter output : String
 
     # Duration of the job execution
-    property duration : Float64
+    getter duration : Float64
 
     def initialize(
       @name,
