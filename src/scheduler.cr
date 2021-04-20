@@ -16,12 +16,12 @@ module Werk
     end
 
     # Execute the target job and its dependencies according to he execution plan
-    def run(target : String, context : String, variables : Hash(String, String), max_parallel_jobs : Int32)
+    def run(target : String, context : String, variables : Hash(String, String), max_jobs : UInt32)
       Log.debug { "Retrieve execution plan for '#{target}'" }
       plan = self.get_plan(target)
 
-      raise "Max parallel jobs must be greater than 0!" if max_parallel_jobs < 1
-      Log.debug { "Running scheduler with max_parallel_jobs set to #{max_parallel_jobs}" }
+      raise "Max parallel jobs must be greater than 0!" if max_jobs < 1
+      Log.debug { "Running scheduler with max_jobs set to #{max_jobs}" }
 
       report = Werk::Model::Report.new(target: target, plan: plan)
       plan.each_with_index do |stage, stage_id|
@@ -29,7 +29,7 @@ module Werk
         exit_pipeline = false
 
         batch_id = 0
-        stage.each_slice(max_parallel_jobs) do |batch|
+        stage.each_slice(max_jobs) do |batch|
           batch.each_with_index do |name, job_id|
             job = @config.jobs[name]
 
