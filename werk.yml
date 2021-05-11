@@ -18,7 +18,6 @@ jobs:
   build:local:
     executor: local
     commands:
-      - unset LOG_LEVEL
       - shards install --ignore-crystal-version
       - shards build
     needs:

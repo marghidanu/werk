@@ -26,10 +26,15 @@ module Werk
       client = Docr::Client.new
       api = Docr::API.new(client)
 
-      # Pull image
-      Log.debug { "Pulling image '#{job.image}'" }
-      repository, tag = Docr::Utils.parse_repository_tag(job.image)
-      api.images.create(repository, tag)
+      begin
+        # Checking if the image exists locally
+        api.images.inspect(job.image)
+        Log.debug { "Image #{job.image} was found locally" }
+      rescue
+        Log.debug { "Fetching image #{job.image}" }
+        repository, tag = Docr::Utils.parse_repository_tag(job.image)
+        api.images.create(repository, tag)
+      end
 
       # Create container
       container_name = "#{Digest::MD5.hexdigest(name)}-#{session_id}"
