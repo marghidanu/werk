@@ -112,7 +112,9 @@ module Werk
     end
 
     private def traverse(name : String, graph : Werk::Utils::Graph, visited = Set(String).new)
-      raise "Job #{name} is not defined!" unless @config.jobs[name]?
+      unless @config.jobs[name]?
+        raise "Job '#{name}' is not defined!"
+      end
 
       return if visited.includes? name
       visited << name

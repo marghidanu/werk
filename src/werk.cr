@@ -30,6 +30,6 @@ begin
 
   Werk::Application.run
 rescue ex : Exception
-  Log.error { ex.message }
+  puts "Error: #{ex.message}"
   exit(1)
 end
