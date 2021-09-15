@@ -12,6 +12,9 @@ module Werk
     @[YAML::Field(key: "description")]
     getter description = ""
 
+    @[YAML::Field(key: "dotenv")]
+    getter dotenv = Set(String).new
+
     # List of global variables
     @[YAML::Field(key: "variables")]
     getter variables = Hash(String, String).new
@@ -49,6 +52,10 @@ module Werk
     # The description for the job
     @[YAML::Field(key: "description")]
     getter description = ""
+
+    # List of dotenv files to be loaded
+    @[YAML::Field(key: "dotenv")]
+    getter dotenv = Set(String).new
 
     # A list of variables to be passed to the job
     @[YAML::Field(key: "variables")]
