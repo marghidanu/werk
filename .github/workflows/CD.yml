@@ -30,7 +30,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           tags: boord/werk:${{ github.event.release.tag_name }},boord/werk:latest
 
   build:
@@ -43,7 +43,7 @@ jobs:
       - name: Install Crystal
         uses: oprypin/install-crystal@v1
         with:
-          crystal: 1.0.0
+          crystal: 1.1.1
 
       - name: Additional Linux dependencies
         if: contains(matrix.os, 'ubuntu')
