@@ -4,7 +4,7 @@ require "log"
 require "./command/*"
 
 module Werk
-  VERSION = "0.5.4"
+  VERSION = "0.6.0"
 
   class Application < Admiral::Command
     define_version Werk::VERSION

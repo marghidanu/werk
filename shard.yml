@@ -1,5 +1,5 @@
 name: werk
-version: 0.5.4
+version: 0.6.0
 authors:
   - tudor@marghidanu.com
 targets:
@@ -14,5 +14,7 @@ dependencies:
     version: 0.9.3
   docr:
     github: marghidanu/docr
+  dotenv:
+    github: gdotdesign/cr-dotenv
 crystal: 1.0.0
 license: MIT

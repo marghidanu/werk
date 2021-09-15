@@ -1,5 +1,6 @@
 require "uuid"
 require "log"
+require "dotenv"
 
 require "./model/*"
 require "./utils/*"
@@ -23,6 +24,10 @@ module Werk
       raise "Max parallel jobs must be greater than 0!" if max_jobs < 1
       Log.debug { "Running scheduler with max_jobs set to #{max_jobs}" }
 
+      @config.dotenv.each do |env_file|
+        @config.variables.merge!(Dotenv.load(env_file))
+      end
+
       report = Werk::Model::Report.new(target: target, plan: plan)
       plan.each_with_index do |stage, stage_id|
         results = Channel(Werk::Model::Report::Job).new
@@ -32,6 +37,10 @@ module Werk
         stage.each_slice(max_jobs) do |batch|
           batch.each_with_index do |name, job_id|
             job = @config.jobs[name]
+
+            job.dotenv.each do |env_file|
+              job.variables.merge!(Dotenv.load(env_file))
+            end
 
             vars = Hash(String, String).new
             vars.merge!(@config.variables)
