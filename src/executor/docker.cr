@@ -54,7 +54,7 @@ module Werk
             ].concat(job.volumes)
           ),
           labels: {
-            "com.stuffo.werk.name"       => "name",
+            "com.stuffo.werk.name"       => name,
             "com.stuffo.werk.session_id" => session_id.to_s,
           }
         )

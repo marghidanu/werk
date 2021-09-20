@@ -22,7 +22,7 @@ module Werk
       output_io = IO::MultiWriter.new(writers)
 
       Log.debug { "Starting Shell process ..." }
-      process = Process.new(". #{script.path}",
+      process = Process.new(script.path,
         shell: true,
         env: job.variables,
         output: output_io,

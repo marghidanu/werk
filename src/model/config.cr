@@ -17,10 +17,10 @@ module Werk
 
     # List of global variables
     @[YAML::Field(key: "variables")]
-    getter variables = Hash(String, String).new
+    property variables = Hash(String, String).new
 
     @[YAML::Field(key: "max_jobs")]
-    getter max_jobs : UInt32?
+    property max_jobs : UInt32 = 32_u32
 
     # Jobs available in the current configuration
     @[YAML::Field(key: "jobs")]
@@ -80,6 +80,9 @@ module Werk
     @[YAML::Field(key: "executor")]
     getter executor : String
 
+    @[YAML::Field(key: "interpreter")]
+    getter interpreter = "/bin/sh"
+
     use_yaml_discriminator "executor", {
       local:  "Werk::Model::Job::Local",
       docker: "Werk::Model::Job::Docker",
@@ -87,7 +90,7 @@ module Werk
 
     def get_script_content
       [
-        "#!/usr/bin/env sh",
+        "#!#{@interpreter}",
       ].concat(@commands).join("\n")
     end
   end

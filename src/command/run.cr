@@ -30,7 +30,7 @@ module Werk
 
     define_flag max_jobs : UInt32,
       description: "Max parallel jobs",
-      default: 32_u32,
+      default: 0_u32,
       long: "jobs",
       short: "j"
 
@@ -52,18 +52,15 @@ module Werk
       config = (flags.stdin) ? Werk::Model::Config.load_string(STDIN.gets_to_end) : Werk::Model::Config.load_file(flags.config)
 
       # Parsing additional variables
-      variables = Hash(String, String).new
       flags.variables.each do |item|
         data = item.match(/^(?P<name>[[:alpha:]_][[:alpha:][:digit:]_]*)=(?P<value>.*)$/)
-        variables[data["name"]] = data["value"] if data
+        config.variables[data["name"]] = data["value"] if data
       end
 
-      max_jobs = flags.max_jobs
-      if !config.max_jobs.nil?
-        max_jobs = config.max_jobs.not_nil!
-        Log.debug { "Configuration has set the max_jobs to #{max_jobs}" }
-      end
+      # Override max_jobs if a different value is specified ar an flag
+      config.max_jobs = flags.max_jobs if flags.max_jobs > 0
 
+      # Creating the scheduler ...
       scheduler = Werk::Scheduler.new(config)
 
       Signal::INT.trap {
@@ -76,11 +73,10 @@ module Werk
         cleanup(scheduler.session_id)
       }
 
+      # ... and running the job
       report = scheduler.run(
         target: (arguments.target || "main"),
         context: flags.context,
-        variables: variables,
-        max_jobs: max_jobs
       )
 
       display_report(report) if flags.report
