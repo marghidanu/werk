@@ -52,9 +52,10 @@ module Werk
       config = (flags.stdin) ? Werk::Model::Config.load_string(STDIN.gets_to_end) : Werk::Model::Config.load_file(flags.config)
 
       # Parsing additional variables
+      variables = Hash(String, String).new
       flags.variables.each do |item|
         data = item.match(/^(?P<name>[[:alpha:]_][[:alpha:][:digit:]_]*)=(?P<value>.*)$/)
-        config.variables[data["name"]] = data["value"] if data
+        variables[data["name"]] = data["value"] if data
       end
 
       # Override max_jobs if a different value is specified ar an flag
@@ -77,6 +78,7 @@ module Werk
       report = scheduler.run(
         target: (arguments.target || "main"),
         context: flags.context,
+        variables: variables,
       )
 
       display_report(report) if flags.report

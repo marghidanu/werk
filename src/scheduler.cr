@@ -17,7 +17,7 @@ module Werk
     end
 
     # Execute the target job and its dependencies according to he execution plan
-    def run(target : String, context : String)
+    def run(target : String, context : String, variables : Hash(String, String))
       Log.debug { "Retrieve execution plan for '#{target}'" }
       plan = self.get_plan(target)
 
@@ -45,6 +45,7 @@ module Werk
             vars = Hash(String, String).new
             vars.merge!(@config.variables)
             vars.merge!(job.variables)
+            vars.merge!(variables)
             vars.merge!({
               "WERK_SESSION_ID"      => @session_id.to_s,
               "WERK_SESSION_TARGET"  => target,
