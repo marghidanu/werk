@@ -51,6 +51,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libyaml-dev
       
+      - name: Additional macOS dependencies
+        if: contains(matrix.os, 'macos')
+        run: |
+          brew install openssl
+      
       - name: Get runner environment
         id: runner
         uses: msansoni/runner-environment-action@v1
