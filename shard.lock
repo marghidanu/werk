@@ -2,7 +2,7 @@ version: 2.0
 shards:
   admiral:
     git: https://github.com/jwaldrip/admiral.cr.git
-    version: 1.11.2
+    version: 1.11.5
 
   docr:
     git: https://github.com/marghidanu/docr.git
