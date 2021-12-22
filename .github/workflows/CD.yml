@@ -60,7 +60,7 @@ jobs:
       - name: Additional macOS dependencies
         if: contains(matrix.os, 'macos')
         run: |
-          brew install openssl
+          brew install openssl yq
 
       - name: Get runner environment
         id: runner
