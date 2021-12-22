@@ -41,6 +41,8 @@ jobs:
         with:
           push: false
           platforms: linux/amd64
+          cache-from: type=registry,ref=boord/werk:latest
+          cache-to: type=inline
 
   test:
     runs-on: "${{ matrix.os }}"

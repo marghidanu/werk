@@ -38,6 +38,8 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: boord/werk:${{ github.event.release.tag_name }},boord/werk:latest
+          cache-from: type=registry,ref=boord/werk:latest
+          cache-to: type=inline
 
   build:
     runs-on: "${{ matrix.os }}"
