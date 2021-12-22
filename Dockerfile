@@ -1,4 +1,4 @@
-FROM crystallang/crystal:1.1.1-alpine AS build
+FROM crystallang/crystal:1.2.2-alpine AS build
 
 # hadolint ignore=DL3018
 # RUN sed -i -e 's/v[[:digit:]]\..*\//edge\//g' /etc/apk/repositories \

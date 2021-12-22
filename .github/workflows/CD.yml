@@ -7,21 +7,26 @@ on:
 
 jobs:
   build-docker:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     if: "!contains(github.event.release.tag_name, '-')"
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Update version
+        run: |
+          yq eval -i ".version = \"${{ github.event.release.tag_name }}\"" shard.yml
+          perl -pi -e 's/VERSION = ".*"/VERSION = "${{ github.event.release.tag_name }}"/g' src/version.cr
+
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v1
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v1
-      
+
       - name: Login to DockerHub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
@@ -29,39 +34,47 @@ jobs:
       - name: Build Docker image
         uses: docker/build-push-action@v2
         with:
+          context: .
           push: true
           platforms: linux/amd64
           tags: boord/werk:${{ github.event.release.tag_name }},boord/werk:latest
+          cache-from: type=registry,ref=boord/werk:latest
+          cache-to: type=inline
 
   build:
     runs-on: "${{ matrix.os }}"
     strategy:
       matrix:
-        os: ["macos-10.15", "ubuntu-20.04"]
+        os: ["macos-latest", "ubuntu-latest"]
 
     steps:
       - name: Install Crystal
         uses: oprypin/install-crystal@v1
         with:
-          crystal: 1.1.1
+          crystal: 1.2.2
 
       - name: Additional Linux dependencies
         if: contains(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update
           sudo apt-get install -y libyaml-dev
-      
+
       - name: Additional macOS dependencies
         if: contains(matrix.os, 'macos')
         run: |
-          brew install openssl
-      
+          brew install openssl yq
+
       - name: Get runner environment
         id: runner
         uses: msansoni/runner-environment-action@v1
 
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Update version
+        run: |
+          yq eval -i ".version = \"${{ github.event.release.tag_name }}\"" shard.yml
+          perl -pi -e 's/VERSION = ".*"/VERSION = "${{ github.event.release.tag_name }}"/g' src/version.cr
 
       - name: Install dependencies
         run: shards install --production --ignore-crystal-version
@@ -87,7 +100,7 @@ jobs:
 
       - name: Homebrew formula update
         uses: mislav/bump-homebrew-formula-action@v1.12
-        if: matrix.os == 'macos-10.15' && !contains(github.event.release.tag_name, '-')
+        if: contains(matrix.os, 'macos') && !contains(github.event.release.tag_name, '-')
         env:
           COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
         with:
