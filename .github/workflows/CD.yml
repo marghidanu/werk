@@ -65,7 +65,7 @@ jobs:
 
       - name: Homebrew formula update
         uses: mislav/bump-homebrew-formula-action@v1.12
-        if: "contains(matrix.os, 'macos') && !github.event.release.draft"
+        if: "contains(matrix.os, 'macos') && !github.event.release.prerelease"
         env:
           COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
         with:
@@ -75,7 +75,7 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
-    if: "!github.event.release.draft"
+    if: "!github.event.release.prerelease"
 
     steps:
       - name: Checkout code
