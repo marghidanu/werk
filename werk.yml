@@ -87,19 +87,3 @@ jobs:
       APP: /usr/local/bin/werk
     commands:
       - '[[ -f "${APP}" ]] && sudo rm -vf "${APP}" || echo "Werk is not installed!"'
-
-  version:
-    description: Update version
-    executor: docker
-    image: mikefarah/yq:4.5.1
-    commands:
-      - >
-        if [ -z ${VERSION+x} ]; then
-          echo "Missing variable VERSION!"
-          echo "Please make sure the variable is set before running this target."
-          exit 1
-        fi
-      - echo "Updating version ${VERSION} ..."
-      - yq eval -i ".version = \"${VERSION}\"" shard.yml
-      - sed -i "s/VERSION = \".*\"/VERSION = \"${VERSION}\"/" src/werk.cr
-      - echo "Done."
