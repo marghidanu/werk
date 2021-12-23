@@ -6,41 +6,6 @@ on:
       - published
 
 jobs:
-  build-docker:
-    runs-on: ubuntu-latest
-    if: "!contains(github.event.release.tag_name, '-')"
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Update version
-        run: |
-          yq eval -i ".version = \"${{ github.event.release.tag_name }}\"" shard.yml
-          perl -pi -e 's/VERSION = ".*"/VERSION = "${{ github.event.release.tag_name }}"/g' src/version.cr
-
-      - name: Setup QEMU
-        uses: docker/setup-qemu-action@v1
-
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          push: true
-          platforms: linux/amd64
-          tags: boord/werk:${{ github.event.release.tag_name }},boord/werk:latest
-          cache-from: type=registry,ref=boord/werk:latest
-          cache-to: type=inline
-
   build:
     runs-on: "${{ matrix.os }}"
     strategy:
@@ -75,6 +40,9 @@ jobs:
         run: |
           yq eval -i ".version = \"${{ github.event.release.tag_name }}\"" shard.yml
           perl -pi -e 's/VERSION = ".*"/VERSION = "${{ github.event.release.tag_name }}"/g' src/version.cr
+          cat src/version.cr
+          cat shard.yml
+
 
       - name: Install dependencies
         run: shards install --production --ignore-crystal-version
@@ -107,3 +75,38 @@ jobs:
           formula-name: werk
           homebrew-tap: marghidanu/homebrew-werk
           base-branch: master
+
+  docker:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.release.tag_name, '-')"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Update version
+        run: |
+          yq eval -i ".version = \"${{ github.event.release.tag_name }}\"" shard.yml
+          perl -pi -e 's/VERSION = ".*"/VERSION = "${{ github.event.release.tag_name }}"/g' src/version.cr
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          tags: boord/werk:${{ github.event.release.tag_name }},boord/werk:latest
+          cache-from: type=registry,ref=boord/werk:latest
+          cache-to: type=inline
