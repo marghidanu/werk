@@ -40,9 +40,6 @@ jobs:
         run: |
           yq eval -i ".version = \"${{ github.event.release.tag_name }}\"" shard.yml
           perl -pi -e 's/VERSION = ".*"/VERSION = "${{ github.event.release.tag_name }}"/g' src/version.cr
-          cat src/version.cr
-          cat shard.yml
-
 
       - name: Install dependencies
         run: shards install --production --ignore-crystal-version
@@ -68,7 +65,7 @@ jobs:
 
       - name: Homebrew formula update
         uses: mislav/bump-homebrew-formula-action@v1.12
-        if: contains(matrix.os, 'macos') && !contains(github.event.release.tag_name, '-')
+        if: "contains(matrix.os, 'macos') && !github.event.release.draft"
         env:
           COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
         with:
@@ -78,7 +75,7 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.release.tag_name, '-')"
+    if: "!github.event.release.draft"
 
     steps:
       - name: Checkout code
