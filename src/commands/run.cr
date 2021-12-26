@@ -65,15 +65,12 @@ module Werk
       # Creating the scheduler ...
       scheduler = Werk::Scheduler.new(config)
 
-      Signal::INT.trap {
-        Log.debug { "Captured SIGINT!" }
-        cleanup(scheduler.session_id)
-      }
-
-      Signal::TERM.trap {
-        Log.debug { "Captured SIGTERM!" }
-        cleanup(scheduler.session_id)
-      }
+      [Signal::INT, Signal::TERM].each do |signal|
+        signal.trap {
+          Log.debug { "Captured #{signal}!" }
+          cleanup(scheduler.session_id)
+        }
+      end
 
       # ... and running the job
       report = scheduler.run(

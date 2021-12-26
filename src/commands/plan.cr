@@ -1,3 +1,4 @@
+require "admiral"
 require "tallboy"
 require "colorize"
 
