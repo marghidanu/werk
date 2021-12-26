@@ -3,7 +3,7 @@ require "log"
 require "dotenv"
 
 require "./models"
-require "./executor/*"
+require "./jobs/*"
 require "./utils/*"
 
 module Werk

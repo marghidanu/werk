@@ -82,8 +82,8 @@ module Werk
     getter interpreter = "/bin/sh"
 
     use_yaml_discriminator "executor", {
-      local:  Werk::Executor::Local,
-      docker: Werk::Executor::Docker,
+      local:  Werk::Job::Local,
+      docker: Werk::Job::Docker,
     }
 
     abstract def run(session_id : UUID, name : String, context : String) : {Int32, String}
