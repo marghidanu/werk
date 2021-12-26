@@ -1,4 +1,4 @@
 require "spec"
-require "../src/model/*"
+require "../src/models"
 require "../src/executor/*"
 require "../src/utils/*"

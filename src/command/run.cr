@@ -3,7 +3,7 @@ require "tallboy"
 require "colorize"
 require "docr"
 
-require "../model/*"
+require "../models"
 require "../scheduler"
 
 module Werk

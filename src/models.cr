@@ -1,4 +1,5 @@
 require "yaml"
+require "json"
 
 module Werk
   class Model::Config
@@ -25,9 +26,6 @@ module Werk
     # Jobs available in the current configuration
     @[YAML::Field(key: "jobs")]
     getter jobs = Hash(String, Werk::Model::Job).new
-
-    def initialize(@description, @jobs)
-    end
 
     # Load configuration from file
     def self.load_file(path : String)
@@ -84,9 +82,11 @@ module Werk
     getter interpreter = "/bin/sh"
 
     use_yaml_discriminator "executor", {
-      local:  "Werk::Model::Job::Local",
-      docker: "Werk::Model::Job::Docker",
+      local:  Werk::Executor::Local,
+      docker: Werk::Executor::Docker,
     }
+
+    abstract def run(session_id : UUID, name : String, context : String) : {Int32, String}
 
     def get_script_content
       [
@@ -95,17 +95,59 @@ module Werk
     end
   end
 
-  class Model::Job::Docker < Model::Job
-    @[YAML::Field(key: "image")]
-    getter image = "alpine:latest"
+  class Model::Report
+    include JSON::Serializable
 
-    @[YAML::Field(key: "volumes")]
-    getter volumes = Array(String).new
+    # Unix epoch when this report was created
+    getter created : Int64
 
-    @[YAML::Field(key: "entrypoint")]
-    getter entrypoint = ["/bin/sh"]
+    # Target job name
+    getter target : String
+
+    # Execution plan
+    getter plan : Array(Array(String))
+
+    # Jobs results
+    getter jobs = Hash(String, Werk::Model::Report::Job).new
+
+    def initialize(@target, @plan)
+      @created = Time.local.to_unix_ms
+    end
   end
 
-  class Model::Job::Local < Model::Job
+  class Model::Report::Job
+    include JSON::Serializable
+
+    # Job name
+    getter name : String
+
+    # Executor type
+    getter executor : String
+
+    # All variables passed to the job
+    getter variables : Hash(String, String)
+
+    # The directory in which the job was executed
+    getter directory : String
+
+    # Execution exit code
+    getter exit_code : Int32
+
+    # Job output (stdout & sterr combined)
+    getter output : String
+
+    # Duration of the job execution
+    getter duration : Float64
+
+    def initialize(
+      @name,
+      @executor,
+      @variables,
+      @directory,
+      @exit_code,
+      @output,
+      @duration
+    )
+    end
   end
 end
