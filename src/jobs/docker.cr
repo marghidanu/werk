@@ -3,7 +3,7 @@ require "docr"
 require "log"
 
 module Werk
-  class Job::Docker < Model::Job
+  class Job::Docker < Config::Job
     @[YAML::Field(key: "image")]
     getter image = "alpine:latest"
 

@@ -1,9 +1,10 @@
+require "admiral"
 require "log"
 require "tallboy"
 require "colorize"
 require "docr"
 
-require "../models"
+require "../config"
 require "../scheduler"
 
 module Werk
@@ -49,7 +50,7 @@ module Werk
       short: "e"
 
     def run
-      config = (flags.stdin) ? Werk::Model::Config.load_string(STDIN.gets_to_end) : Werk::Model::Config.load_file(flags.config)
+      config = (flags.stdin) ? Werk::Config.load_string(STDIN.gets_to_end) : Werk::Config.load_file(flags.config)
 
       # Parsing additional variables
       variables = Hash(String, String).new

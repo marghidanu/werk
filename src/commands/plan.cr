@@ -1,7 +1,7 @@
 require "tallboy"
 require "colorize"
 
-require "../models"
+require "../config"
 require "../scheduler"
 
 module Werk
@@ -22,7 +22,7 @@ module Werk
       long: "stdin"
 
     def run
-      config = (flags.stdin) ? Werk::Model::Config.load_string(STDIN.gets_to_end) : Werk::Model::Config.load_file(flags.config)
+      config = (flags.stdin) ? Werk::Config.load_string(STDIN.gets_to_end) : Werk::Config.load_file(flags.config)
 
       target = arguments.target || "main"
       plan = Werk::Scheduler.new(config).get_plan(target)

@@ -1,7 +1,7 @@
 require "log"
 
 module Werk
-  class Job::Local < Model::Job
+  class Job::Local < Config::Job
     Log = ::Log.for(self)
 
     def run(session_id : UUID, name : String, context : String) : {Int32, String}
