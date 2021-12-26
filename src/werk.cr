@@ -2,7 +2,7 @@ require "admiral"
 require "log"
 
 require "./version"
-require "./command/*"
+require "./commands/*"
 
 module Werk
   class Application < Admiral::Command
