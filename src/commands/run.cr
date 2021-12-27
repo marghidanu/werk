@@ -1,9 +1,10 @@
+require "admiral"
 require "log"
 require "tallboy"
 require "colorize"
 require "docr"
 
-require "../model/*"
+require "../config"
 require "../scheduler"
 
 module Werk
@@ -49,7 +50,7 @@ module Werk
       short: "e"
 
     def run
-      config = (flags.stdin) ? Werk::Model::Config.load_string(STDIN.gets_to_end) : Werk::Model::Config.load_file(flags.config)
+      config = (flags.stdin) ? Werk::Config.load_string(STDIN.gets_to_end) : Werk::Config.load_file(flags.config)
 
       # Parsing additional variables
       variables = Hash(String, String).new
@@ -59,20 +60,19 @@ module Werk
       end
 
       # Override max_jobs if a different value is specified ar an flag
-      config.max_jobs = flags.max_jobs if flags.max_jobs > 0
+      if flags.max_jobs > 0
+        config.max_jobs = flags.max_jobs
+      end
 
       # Creating the scheduler ...
       scheduler = Werk::Scheduler.new(config)
 
-      Signal::INT.trap {
-        Log.debug { "Captured SIGINT!" }
-        cleanup(scheduler.session_id)
-      }
-
-      Signal::TERM.trap {
-        Log.debug { "Captured SIGTERM!" }
-        cleanup(scheduler.session_id)
-      }
+      [Signal::INT, Signal::TERM].each do |signal|
+        signal.trap {
+          Log.debug { "Captured #{signal}!" }
+          cleanup(scheduler.session_id)
+        }
+      end
 
       # ... and running the job
       report = scheduler.run(
@@ -81,7 +81,9 @@ module Werk
         variables: variables,
       )
 
-      display_report(report) if flags.report
+      if flags.report
+        display_report(report)
+      end
     end
 
     def display_report(report)
@@ -139,7 +141,7 @@ module Werk
     rescue ex
       Log.debug { ex.message }
     ensure
-      exit(1)
+      exit 1
     end
   end
 end

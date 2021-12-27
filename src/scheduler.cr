@@ -2,9 +2,10 @@ require "uuid"
 require "log"
 require "dotenv"
 
-require "./model/*"
+require "./config"
+require "./report"
+require "./jobs/*"
 require "./utils/*"
-require "./executor/*"
 
 module Werk
   class Scheduler
@@ -13,7 +14,7 @@ module Werk
     getter session_id = UUID.random
 
     # Initialize the Scheduler based on the configuration object
-    def initialize(@config : Werk::Model::Config)
+    def initialize(@config : Werk::Config)
     end
 
     # Execute the target job and its dependencies according to he execution plan
@@ -21,16 +22,18 @@ module Werk
       Log.debug { "Retrieve execution plan for '#{target}'" }
       plan = self.get_plan(target)
 
-      raise "Max parallel jobs must be greater than 0!" if @config.max_jobs < 1
+      if @config.max_jobs < 1
+        raise "Max parallel jobs must be greater than 0!"
+      end
       Log.debug { "Running scheduler with max_jobs set to #{@config.max_jobs}" }
 
       @config.dotenv.each do |env_file|
         @config.variables.merge!(Dotenv.load(env_file))
       end
 
-      report = Werk::Model::Report.new(target: target, plan: plan)
+      report = Werk::Report.new(target: target, plan: plan)
       plan.each_with_index do |stage, stage_id|
-        results = Channel(Werk::Model::Report::Job).new
+        results = Channel(Werk::Report::Job).new
         exit_pipeline = false
 
         batch_id = 0
@@ -55,20 +58,11 @@ module Werk
             })
             job.variables = vars
 
-            case job
-            when Werk::Model::Job::Docker
-              executor = Werk::Executor::Docker.new
-            when Werk::Model::Job::Local
-              executor = Werk::Executor::Shell.new
-            else
-              raise "Unknown executor type!"
-            end
-
             spawn do
               start = Time.local
               begin
                 Log.debug { "> Begin execution '#{name}' (#{stage_id}:#{batch_id}:#{job_id})" }
-                exit_code, output = executor.run(job, @session_id, name, context)
+                exit_code, output = job.run(@session_id, name, context)
                 Log.debug { "< End execution '#{name}' (#{stage_id}:#{batch_id}:#{job_id})" }
               rescue ex
                 Log.error { "Job #{name} failed. Exception: #{ex.message}" }
@@ -77,7 +71,7 @@ module Werk
               duration = Time.local - start
 
               results.send(
-                Werk::Model::Report::Job.new(
+                Werk::Report::Job.new(
                   name: name,
                   executor: job.executor,
                   variables: job.variables,

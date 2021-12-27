@@ -1,37 +1,51 @@
 require "./spec_helper"
 
 describe "Config" do
-  it "should load the config file" do
-    config = Werk::Model::Config.load_file("werk.yml")
+  it "empty" do
+    expect_raises(Exception, "Empty configuration!") do
+      config = Werk::Config.load_string("")
+    end
+  end
 
-    config.is_a?(Werk::Model::Config).should eq true
+  it "invalid" do
+    expect_raises(Exception, /^Parse error/) do
+      config = Werk::Config.load_string(%(
+        version: 1
+        jobs:
+          main:
+            executor: shell
+      ))
+    end
+  end
+
+  it "valid" do
+    config = Werk::Config.load_string(%(
+      version: 1.0
+
+      jobs:
+        shell:
+          executor: local
+
+        container:
+          executor: docker
+    ))
+
+    config.should be_a Werk::Config
+    config.version.should eq "1.0"
+    config.jobs.keys.should eq ["shell", "container"]
+
+    config.jobs["shell"].should be_a Werk::Job::Local
+    config.jobs["container"].should be_a Werk::Job::Docker
+  end
+
+  it "should load the config file" do
+    config = Werk::Config.load_file("werk.yml")
+    config.should be_a Werk::Config
   end
 
   it "should fail for non existing file" do
     expect_raises(Exception, "Configuration file missing!") do
-      Werk::Model::Config.load_file("werk.yaml")
+      Werk::Config.load_file("werk.yaml")
     end
-  end
-
-  it "should fail for empty content" do
-    temp = File.tempfile
-    File.write(temp.path, "")
-
-    expect_raises(Exception, "Configuration file is empty!") do
-      Werk::Model::Config.load_file(temp.path)
-    end
-
-    temp.delete
-  end
-
-  it "should fail with parsing error" do
-    temp = File.tempfile
-    File.write(temp.path, "jobs: []")
-
-    expect_raises(Exception, "Parse error at line 1, column 7") do
-      Werk::Model::Config.load_file(temp.path)
-    end
-
-    temp.delete
   end
 end

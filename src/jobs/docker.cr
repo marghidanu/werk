@@ -2,25 +2,27 @@ require "digest/md5"
 require "docr"
 require "log"
 
-require "../executor"
-
 module Werk
-  class Executor::Docker < Werk::Executor
+  class Job::Docker < Config::Job
+    @[YAML::Field(key: "image")]
+    getter image = "alpine:latest"
+
+    @[YAML::Field(key: "volumes")]
+    getter volumes = Array(String).new
+
+    @[YAML::Field(key: "entrypoint")]
+    getter entrypoint = ["/bin/sh"]
+
     Log = ::Log.for(self)
 
-    def run(job : Werk::Model::Job, session_id : UUID, name : String, context : String) : {Int32, String}
-      job = job.as(Werk::Model::Job::Docker)
-
-      script = File.tempfile
-      content = job.get_script_content
-      File.write(script.path, content)
-      File.chmod(script.path, 0o755)
+    def run(session_id : UUID, name : String, context : String) : {Int32, String}
+      script = get_script_file
       Log.debug { "Created temporary script file #{script.path}" }
 
       buffer_io = IO::Memory.new
       writers = Array(IO).new
       writers << buffer_io
-      writers << Werk::Utils::PrefixIO.new(STDOUT, name) unless job.silent
+      writers << Werk::Utils::PrefixIO.new(STDOUT, name) unless @silent
       output_io = IO::MultiWriter.new(writers)
 
       client = Docr::Client.new
@@ -28,11 +30,11 @@ module Werk
 
       begin
         # Checking if the image exists locally
-        api.images.inspect(job.image)
-        Log.debug { "Image #{job.image} was found locally" }
+        api.images.inspect(@image)
+        Log.debug { "Image #{@image} was found locally" }
       rescue
-        Log.debug { "Fetching image #{job.image}" }
-        repository, tag = Docr::Utils.parse_repository_tag(job.image)
+        Log.debug { "Fetching image #{@image}" }
+        repository, tag = Docr::Utils.parse_repository_tag(@image)
         api.images.create(repository, tag)
       end
 
@@ -42,16 +44,16 @@ module Werk
       container = api.containers.create(
         container_name,
         Docr::Types::CreateContainerConfig.new(
-          image: job.image,
-          entrypoint: job.entrypoint,
+          image: @image,
+          entrypoint: @entrypoint,
           cmd: ["/opt/start.sh"],
           working_dir: "/opt/workspace",
-          env: job.variables.map { |k, v| "#{k}=#{v}" },
+          env: @variables.map { |k, v| "#{k}=#{v}" },
           host_config: Docr::Types::HostConfig.new(
             binds: [
               "#{script.path}:/opt/start.sh",
               "#{Path[context].expand}:/opt/workspace",
-            ].concat(job.volumes)
+            ].concat(@volumes)
           ),
           labels: {
             "com.stuffo.werk.name"       => name,
