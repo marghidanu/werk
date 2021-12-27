@@ -1,4 +1,5 @@
 require "spec"
+
 require "../src/config"
 require "../src/report"
 require "../src/jobs/*"
