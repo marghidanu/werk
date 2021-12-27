@@ -28,14 +28,18 @@ module Werk
 
     # Load configuration from file
     def self.load_file(path : String)
-      raise "Configuration file missing!" unless File.exists?(path)
+      unless File.exists?(path)
+        raise "Configuration file missing!"
+      end
 
       content = File.read(path)
       self.load_string(content)
     end
 
     def self.load_string(content : String)
-      raise "Configuration file is empty!" if content.empty?
+      if content.empty?
+        raise "Empty configuration!"
+      end
 
       self.from_yaml(content)
     rescue yaml_ex : YAML::ParseException
@@ -90,6 +94,15 @@ module Werk
         [
           "#!#{@interpreter}",
         ].concat(@commands).join("\n")
+      end
+
+      def get_script_file
+        script = File.tempfile
+        content = get_script_content
+        File.write(script.path, content)
+        File.chmod(script.path, 0o755)
+
+        script
       end
     end
   end

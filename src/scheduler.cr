@@ -22,7 +22,9 @@ module Werk
       Log.debug { "Retrieve execution plan for '#{target}'" }
       plan = self.get_plan(target)
 
-      raise "Max parallel jobs must be greater than 0!" if @config.max_jobs < 1
+      if @config.max_jobs < 1
+        raise "Max parallel jobs must be greater than 0!"
+      end
       Log.debug { "Running scheduler with max_jobs set to #{@config.max_jobs}" }
 
       @config.dotenv.each do |env_file|

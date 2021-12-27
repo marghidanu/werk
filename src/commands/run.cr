@@ -60,7 +60,9 @@ module Werk
       end
 
       # Override max_jobs if a different value is specified ar an flag
-      config.max_jobs = flags.max_jobs if flags.max_jobs > 0
+      if flags.max_jobs > 0
+        config.max_jobs = flags.max_jobs
+      end
 
       # Creating the scheduler ...
       scheduler = Werk::Scheduler.new(config)
@@ -79,7 +81,9 @@ module Werk
         variables: variables,
       )
 
-      display_report(report) if flags.report
+      if flags.report
+        display_report(report)
+      end
     end
 
     def display_report(report)
@@ -137,7 +141,7 @@ module Werk
     rescue ex
       Log.debug { ex.message }
     ensure
-      exit(1)
+      exit 1
     end
   end
 end

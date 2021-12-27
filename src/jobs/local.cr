@@ -5,10 +5,7 @@ module Werk
     Log = ::Log.for(self)
 
     def run(session_id : UUID, name : String, context : String) : {Int32, String}
-      script = File.tempfile
-      content = get_script_content
-      File.write(script.path, content)
-      File.chmod(script.path, 0o755)
+      script = get_script_file
       Log.debug { "Created temporary script file #{script.path}" }
 
       buffer_io = IO::Memory.new

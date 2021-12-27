@@ -1,4 +1,5 @@
 require "admiral"
+
 require "./version"
 require "./commands/*"
 
