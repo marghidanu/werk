@@ -3,13 +3,13 @@ require "./spec_helper"
 describe "Config" do
   it "empty" do
     expect_raises(Exception, "Empty configuration!") do
-      config = Werk::Config.load_string("")
+      Werk::Config.load_string("")
     end
   end
 
   it "invalid" do
     expect_raises(Exception, /^Parse error/) do
-      config = Werk::Config.load_string(%(
+      Werk::Config.load_string(%(
         version: 1
         jobs:
           main:
