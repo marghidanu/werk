@@ -97,9 +97,12 @@ module Werk
       end
 
       def get_script_file
-        script = File.tempfile
         content = get_script_content
-        File.write(script.path, content)
+
+        script = File.tempfile
+        script << content
+        script.close
+
         File.chmod(script.path, 0o755)
 
         script
