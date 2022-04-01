@@ -7,8 +7,8 @@ require "docr"
 require "../config"
 require "../scheduler"
 
-module Werk
-  class Command::Run < Admiral::Command
+module Werk::Commands
+  class Run < Admiral::Command
     Log = ::Log.for(self)
 
     define_help description: "Run target"

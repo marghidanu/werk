@@ -22,14 +22,10 @@ module Werk
       Log.debug { "Retrieve execution plan for '#{target}'" }
       plan = self.get_plan(target)
 
-      if @config.max_jobs < 1
-        raise "Max parallel jobs must be greater than 0!"
-      end
-      Log.debug { "Running scheduler with max_jobs set to #{@config.max_jobs}" }
+      raise "Max parallel jobs must be greater than 0!" if @config.max_jobs < 1
 
-      @config.dotenv.each do |env_file|
-        @config.variables.merge!(Dotenv.load(env_file))
-      end
+      Log.debug { "Running scheduler with max_jobs set to #{@config.max_jobs}" }
+      @config.dotenv.each { |f| @config.variables.merge!(Dotenv.load(f)) }
 
       report = Werk::Report.new(target: target, plan: plan)
       plan.each_with_index do |stage, stage_id|
@@ -41,10 +37,7 @@ module Werk
           batch.each_with_index do |name, job_id|
             job = @config.jobs[name]
 
-            job.dotenv.each do |env_file|
-              job.variables.merge!(Dotenv.load(env_file))
-            end
-
+            job.dotenv.each { |f| job.variables.merge!(Dotenv.load(f)) }
             vars = Hash(String, String).new
             vars.merge!(@config.variables)
             vars.merge!(job.variables)
