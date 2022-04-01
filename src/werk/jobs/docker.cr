@@ -2,8 +2,8 @@ require "digest/md5"
 require "docr"
 require "log"
 
-module Werk
-  class Job::Docker < Config::Job
+module Werk::Jobs
+  class Docker < Werk::Config::Job
     @[YAML::Field(key: "image")]
     getter image = "alpine:latest"
 

@@ -34,8 +34,8 @@ describe "Config" do
     config.version.should eq "1.0"
     config.jobs.keys.should eq ["shell", "container"]
 
-    config.jobs["shell"].should be_a Werk::Job::Local
-    config.jobs["container"].should be_a Werk::Job::Docker
+    config.jobs["shell"].should be_a Werk::Jobs::Local
+    config.jobs["container"].should be_a Werk::Jobs::Docker
   end
 
   it "should load the config file" do

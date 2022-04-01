@@ -1,6 +1,5 @@
 require "admiral"
 
-require "./version"
 require "./commands/*"
 
 module Werk
@@ -8,10 +7,10 @@ module Werk
     define_version Werk::VERSION
     define_help description: "Werk"
 
-    register_sub_command plan : Werk::Command::Plan,
+    register_sub_command plan : Werk::Commands::Plan,
       description: "Display execution plan"
 
-    register_sub_command run : Werk::Command::Run,
+    register_sub_command run : Werk::Commands::Run,
       description: "Run a job by name"
 
     def run
