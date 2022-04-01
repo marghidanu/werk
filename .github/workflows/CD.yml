@@ -16,7 +16,7 @@ jobs:
       - name: Install Crystal
         uses: oprypin/install-crystal@v1
         with:
-          crystal: 1.2.2
+          crystal: 1.3.2
 
       - name: Additional Linux dependencies
         if: contains(matrix.os, 'ubuntu')
@@ -39,7 +39,7 @@ jobs:
       - name: Update version
         run: |
           yq eval -i ".version = \"${{ github.event.release.tag_name }}\"" shard.yml
-          perl -pi -e 's/VERSION = ".*"/VERSION = "${{ github.event.release.tag_name }}"/g' src/version.cr
+          perl -pi -e 's/VERSION = ".*"/VERSION = "${{ github.event.release.tag_name }}"/g' src/werk.cr
 
       - name: Install dependencies
         run: shards install --production --ignore-crystal-version
@@ -84,7 +84,7 @@ jobs:
       - name: Update version
         run: |
           yq eval -i ".version = \"${{ github.event.release.tag_name }}\"" shard.yml
-          perl -pi -e 's/VERSION = ".*"/VERSION = "${{ github.event.release.tag_name }}"/g' src/version.cr
+          perl -pi -e 's/VERSION = ".*"/VERSION = "${{ github.event.release.tag_name }}"/g' src/werk.cr
 
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v1
