@@ -13,6 +13,9 @@ module Werk::Jobs
     @[YAML::Field(key: "entrypoint")]
     getter entrypoint = ["/bin/sh"]
 
+    @[YAML::Field(key: "network_mode")]
+    getter network_mode = "bridge"
+
     Log = ::Log.for(self)
 
     def run(session_id : UUID, name : String, context : String) : {Int32, String}
@@ -50,6 +53,7 @@ module Werk::Jobs
           working_dir: "/opt/workspace",
           env: @variables.map { |k, v| "#{k}=#{v}" },
           host_config: Docr::Types::HostConfig.new(
+            network_mode: @network_mode,
             binds: [
               "#{script.path}:/opt/start.sh",
               "#{Path[context].expand}:/opt/workspace",
