@@ -14,7 +14,7 @@ module Werk::Jobs
     getter entrypoint = ["/bin/sh"]
 
     @[YAML::Field(key: "network_mode")]
-    getter network_mode = "bridged"
+    getter network_mode = "bridge"
 
     Log = ::Log.for(self)
 
