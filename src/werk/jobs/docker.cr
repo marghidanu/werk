@@ -70,24 +70,44 @@ module Werk::Jobs
         Log.debug { "Starting container '#{container_name}'" }
         api.containers.start(container.id)
 
-        Log.debug { "Streaming logs for '#{container_name}'" }
-        io = api.containers.logs(container.id, follow: true, stdout: true, stderr: true)
+        begin
+          Log.debug { "Streaming logs for '#{container_name}'" }
+          io = api.containers.logs(container.id, follow: true, stdout: true, stderr: true)
 
-        # Reading the logs in the Docker format.
-        # More information can be found here: https://docs.docker.com/engine/api/v1.41/#operation/ContainerAttach
-        # Look for the "Stream format" section.
-        loop do
-          # Checking if there's any more incoming data
-          break if io.peek.not_nil!.empty?
+          # Reading the logs in the Docker format.
+          # More information can be found here: https://docs.docker.com/engine/api/v1.41/#operation/ContainerAttach
+          # Look for the "Stream format" section.
+          loop do
+            # Checking if there's any more incoming data
+            has_next = io.peek
+            break if has_next.nil? || has_next.empty?
 
-          # Reading the header
-          _ = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
-          frame_size = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
+            # Reading the header
+            _ = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
+            frame_size = io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
 
-          # Read frame and send it to the output IO
-          slice = Bytes.new(frame_size)
-          io.read(slice)
-          output_io.write(slice)
+            # Read frame and send it to the output IO
+            slice = Bytes.new(frame_size)
+            total_bytes_read = 0
+            retries = 0
+
+            while total_bytes_read < frame_size && retries < 3
+              bytes_read = io.read(slice[total_bytes_read, frame_size - total_bytes_read])
+              next if bytes_read == 0
+
+              total_bytes_read += bytes_read
+              retries += 1 if total_bytes_read
+            end
+
+            if total_bytes_read != frame_size
+              Log.warn { "Expected to read #{frame_size} bytes but only read #{total_bytes_read}" }
+              io.skip(frame_size - total_bytes_read)
+            else
+              output_io.write(slice)
+            end
+          end
+        rescue ex
+          Log.error { ex }
         end
 
         # Wait for the container execution to end and retrieve the exit code.
