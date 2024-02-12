@@ -1,5 +1,6 @@
 require "digest/md5"
 require "docr"
+require "docr/utils"
 require "log"
 
 module Werk::Jobs
@@ -35,7 +36,8 @@ module Werk::Jobs
         # Checking if the image exists locally
         api.images.inspect(@image)
         Log.debug { "Image #{@image} was found locally" }
-      rescue
+      rescue ex
+        Log.debug { ex }
         Log.debug { "Fetching image #{@image}" }
         repository, tag = Docr::Utils.parse_repository_tag(@image)
         api.images.create(repository, tag)
