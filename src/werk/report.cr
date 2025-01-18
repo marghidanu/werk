@@ -51,7 +51,7 @@ module Werk
         @directory,
         @exit_code,
         @output,
-        @duration
+        @duration,
       )
       end
     end

@@ -25,7 +25,9 @@ module Werk
       raise "Max parallel jobs must be greater than 0!" if @config.max_jobs < 1
 
       Log.debug { "Running scheduler with max_jobs set to #{@config.max_jobs}" }
-      @config.dotenv.each { |f| @config.variables.merge!(Dotenv.load(f)) }
+      @config.dotenv.each do |file|
+        @config.variables.merge!(Dotenv.load(file))
+      end
 
       report = Werk::Report.new(target: target, plan: plan)
       plan.each_with_index do |stage, stage_id|
@@ -37,7 +39,9 @@ module Werk
           batch.each_with_index do |name, job_id|
             job = @config.jobs[name]
 
-            job.dotenv.each { |f| job.variables.merge!(Dotenv.load(f)) }
+            job.dotenv.each do |file|
+              job.variables.merge!(Dotenv.load(file))
+            end
             vars = Hash(String, String).new
             vars.merge!(@config.variables)
             vars.merge!(job.variables)
@@ -83,7 +87,7 @@ module Werk
             report.jobs[result.name] = result
 
             # Determining if we need to stop the pipeline
-            exit_pipeline = (result.exit_code != 0) && !job.can_fail
+            exit_pipeline = (result.exit_code != 0) && !job.can_fail?
           end
 
           batch_id += 1

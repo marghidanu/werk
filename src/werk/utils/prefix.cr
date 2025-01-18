@@ -33,7 +33,6 @@ module Werk::Utils
         @new_line = (char == '\n')
       end
     rescue ex : IO::Error
-      # TODO: This is a known issue with piping
       nil
     end
   end

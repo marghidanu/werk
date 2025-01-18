@@ -20,7 +20,7 @@ module Werk::Jobs
     Log = ::Log.for(self)
 
     def run(session_id : UUID, name : String, context : String) : {Int32, String}
-      script = get_script_file
+      script = script_file
       Log.debug { "Created temporary script file #{script.path}" }
 
       buffer_io = IO::Memory.new

@@ -4,14 +4,14 @@ describe "Graph" do
   it "should create an empty graph" do
     graph = Werk::Utils::Graph.new
 
-    graph.get_vertices.size.should eq 0
+    graph.vertices.size.should eq 0
   end
 
   it "should add vertices via edges" do
     g = Werk::Utils::Graph.new
     g.add_edge("a", "b")
 
-    vertices = g.get_vertices
+    vertices = g.vertices
     vertices.should eq(["a", "b"])
   end
 
