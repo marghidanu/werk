@@ -6,11 +6,11 @@ shards:
 
   crystar:
     git: https://github.com/naqvis/crystar.git
-    version: 0.3.1
+    version: 0.4.0
 
   docr:
     git: https://github.com/marghidanu/docr.git
-    version: 0.1.1+git.commit.b0e57d938a3ee8628be58917c42ee63ead50086d
+    version: 0.1.2+git.commit.f72c164ab319eb109438c25de31642d1f0908e95
 
   dotenv:
     git: https://github.com/gdotdesign/cr-dotenv.git
