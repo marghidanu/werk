@@ -22,7 +22,7 @@ module Werk::Utils
     end
 
     # Get all vertices for the graph
-    def get_vertices
+    def vertices
       @adjacency_list.keys
     end
 

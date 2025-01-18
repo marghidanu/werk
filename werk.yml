@@ -48,7 +48,7 @@ jobs:
   lint:crystal:
     description: "Lint code"
     executor: docker
-    image: veelenga/ameba
+    image: ghcr.io/crystal-ameba/ameba:latest
     commands:
       - ameba
 

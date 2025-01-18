@@ -23,7 +23,7 @@ module Werk::Commands
       long: "stdin"
 
     def run
-      config = (flags.stdin) ? Werk::Config.load_string(STDIN.gets_to_end) : Werk::Config.load_file(flags.config)
+      config = flags.stdin ? Werk::Config.load_string(STDIN.gets_to_end) : Werk::Config.load_file(flags.config)
 
       target = arguments.target || "main"
       plan = Werk::Scheduler.new(config).get_plan(target)
@@ -43,7 +43,7 @@ module Werk::Commands
             row border: :bottom do
               cell (name == target) ? name.colorize(:blue) : name, align: :center
               cell job.description.empty? ? "[No description]" : job.description
-              cell job.can_fail ? "Yes".colorize(:red) : "No".colorize(:green), align: :center
+              cell job.can_fail? ? "Yes".colorize(:red) : "No".colorize(:green), align: :center
             end
           end
         end

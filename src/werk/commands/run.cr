@@ -50,7 +50,7 @@ module Werk::Commands
       short: "e"
 
     def run
-      config = (flags.stdin) ? Werk::Config.load_string(STDIN.gets_to_end) : Werk::Config.load_file(flags.config)
+      config = flags.stdin ? Werk::Config.load_string(STDIN.gets_to_end) : Werk::Config.load_file(flags.config)
 
       # Parsing additional variables
       variables = Hash(String, String).new
@@ -118,7 +118,6 @@ module Werk::Commands
     end
 
     def cleanup(session_id : UUID)
-      # TODO: This logic needs to sit somewhere else ...
       client = Docr::Client.new
       api = Docr::API.new(client)
 

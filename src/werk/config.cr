@@ -42,8 +42,8 @@ module Werk
       end
 
       self.from_yaml(content)
-    rescue yaml_ex : YAML::ParseException
-      raise "Parse error at line #{yaml_ex.line_number}, column #{yaml_ex.column_number}"
+    rescue ex : YAML::ParseException
+      raise "Parse error at line #{ex.line_number}, column #{ex.column_number}"
     end
 
     abstract class Job
@@ -71,11 +71,11 @@ module Werk
 
       # Signals if the job is allowed to fail or not.
       @[YAML::Field(key: "can_fail")]
-      getter can_fail = false
+      getter? can_fail = false
 
       # Suppress job output to STDOUT
       @[YAML::Field(key: "silent")]
-      getter silent = false
+      getter? silent = false
 
       @[YAML::Field(key: "executor")]
       getter executor : String
@@ -90,14 +90,14 @@ module Werk
 
       abstract def run(session_id : UUID, name : String, context : String) : {Int32, String}
 
-      def get_script_content
+      def script_content
         [
           "#!#{@interpreter}",
         ].concat(@commands).join("\n")
       end
 
-      def get_script_file
-        content = get_script_content
+      def script_file
+        content = script_content
 
         script = File.tempfile
         script << content
