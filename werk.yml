@@ -87,3 +87,9 @@ jobs:
       APP: /usr/local/bin/werk
     commands:
       - '[[ -f "${APP}" ]] && sudo rm -vf "${APP}" || echo "Werk is not installed!"'
+
+  vars:
+    description: Show variables
+    executor: local
+    commands:
+      - export | grep WERK

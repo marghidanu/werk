@@ -45,15 +45,22 @@ module Werk::Commands
       short: "r"
 
     define_flag variables : Array(String),
-      description: "",
+      description: "Export additional envionment variables",
       long: "env",
       short: "e"
+
+    define_flag yes : Bool,
+      description: "Set flag for WERK_YES to true",
+      long: "yes",
+      short: "y",
+      default: false
 
     def run
       config = flags.stdin ? Werk::Config.load_string(STDIN.gets_to_end) : Werk::Config.load_file(flags.config)
 
       # Parsing additional variables
       variables = Hash(String, String).new
+      variables["WERK_YES"] = flags.yes.to_s
       flags.variables.each do |item|
         data = item.match(/^(?P<name>[[:alpha:]_][[:alpha:][:digit:]_]*)=(?P<value>.*)$/)
         variables[data["name"]] = data["value"] if data
