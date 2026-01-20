@@ -1,4 +1,4 @@
-FROM 84codes/crystal:1.15.0-alpine AS build
+FROM 84codes/crystal:1.18.2-alpine AS build
 
 # hadolint ignore=DL3018
 RUN apk add --no-cache yaml-static zlib-static

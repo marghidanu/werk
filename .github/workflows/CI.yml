@@ -15,10 +15,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Crystal Ameba Linter
-        run: docker run -v $(pwd):/src ghcr.io/crystal-ameba/ameba:latest 
+        uses: actions/checkout@v4
 
       - name: Hadolint Action
         uses: brpaz/hadolint-action@v1.1.0
@@ -31,7 +28,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v1
@@ -60,7 +57,7 @@ jobs:
       - name: Install Crystal
         uses: oprypin/install-crystal@v1
         with:
-          crystal: 1.15.0
+          crystal: 1.18.2
 
       - name: Additional Linux dependencies
         if: contains(matrix.os, 'ubuntu')
@@ -74,7 +71,7 @@ jobs:
           brew install openssl
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install dependencies
         run: shards install --ignore-crystal-version
