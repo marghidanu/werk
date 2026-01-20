@@ -3,9 +3,14 @@ name: CI
 on:
   workflow_dispatch: {}
   push:
-    branches: ["master"]
+    branches:
+      - master
   pull_request:
-    branches: ["*"]
+    branches:
+      - "**"
+  release:
+    types:
+      - published
   schedule:
     - cron: 0 23 * * *
 
