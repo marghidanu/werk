@@ -14,6 +14,7 @@ dependencies:
     version: 0.9.3
   docr:
     github: marghidanu/docr
+    version: 0.1.4
   dotenv:
     github: gdotdesign/cr-dotenv
 crystal: 1.15.0
