@@ -10,7 +10,7 @@ shards:
 
   docr:
     git: https://github.com/marghidanu/docr.git
-    version: 0.1.2+git.commit.f72c164ab319eb109438c25de31642d1f0908e95
+    version: 0.1.4
 
   dotenv:
     git: https://github.com/gdotdesign/cr-dotenv.git
