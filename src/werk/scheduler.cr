@@ -6,6 +6,7 @@ require "./config"
 require "./report"
 require "./jobs/*"
 require "./utils/*"
+require "../craph"
 
 module Werk
   class Scheduler
@@ -51,15 +52,13 @@ module Werk
               "WERK_SESSION_TARGET"  => target,
               "WERK_STAGE_ID"        => stage_id.to_s,
               "WERK_JOB_NAME"        => name,
-              "WERK_JOB_DESCRIPTION" => job.description || "",
+              "WERK_JOB_DESCRIPTION" => job.description,
             })
-            job.variables = vars
-
             spawn do
               start = Time.local
               begin
                 Log.debug { "> Begin execution '#{name}' (#{stage_id}:#{batch_id}:#{job_id})" }
-                exit_code, output = job.run(@session_id, name, context)
+                exit_code, output = job.run(@session_id, name, context, vars)
                 Log.debug { "< End execution '#{name}' (#{stage_id}:#{batch_id}:#{job_id})" }
               rescue ex
                 Log.error { "Job #{name} failed. Exception: #{ex.message}" }
@@ -71,7 +70,7 @@ module Werk
                 Werk::Report::Job.new(
                   name: name,
                   executor: job.executor,
-                  variables: job.variables,
+                  variables: vars,
                   directory: context,
                   exit_code: exit_code,
                   output: output,
@@ -87,7 +86,7 @@ module Werk
             report.jobs[result.name] = result
 
             # Determining if we need to stop the pipeline
-            exit_pipeline = (result.exit_code != 0) && !job.can_fail?
+            exit_pipeline ||= (result.exit_code != 0) && !job.can_fail?
           end
 
           batch_id += 1
@@ -105,13 +104,13 @@ module Werk
 
     # Get execution plan based on the generated graph
     def get_plan(target : String)
-      graph = Werk::Utils::Graph.new
+      graph = Craph::DAG(String).new
       self.traverse(target, graph)
 
       graph.topological_sort
     end
 
-    private def traverse(name : String, graph : Werk::Utils::Graph, visited = Set(String).new)
+    private def traverse(name : String, graph : Craph::DAG(String), visited = Set(String).new)
       unless @config.jobs[name]?
         raise "Job '#{name}' is not defined!"
       end
@@ -119,7 +118,7 @@ module Werk
       return if visited.includes? name
       visited << name
 
-      graph.add_vertex(name)
+      graph.add_node(name)
       @config.jobs[name].needs.each do |dependency|
         graph.add_edge(dependency, name)
         self.traverse(dependency, graph, visited)

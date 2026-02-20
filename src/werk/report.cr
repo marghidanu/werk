@@ -11,7 +11,7 @@ module Werk
     getter target : String
 
     # Execution plan
-    getter plan : Array(Array(String))
+    getter plan : Array(Set(String))
 
     # Jobs results
     getter jobs = Hash(String, Werk::Report::Job).new
