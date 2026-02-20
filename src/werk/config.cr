@@ -88,7 +88,7 @@ module Werk
         docker: Werk::Jobs::Docker,
       }
 
-      abstract def run(session_id : UUID, name : String, context : String) : {Int32, String}
+      abstract def run(session_id : UUID, name : String, context : String, variables : Hash(String, String)) : {Int32, String}
 
       def script_content
         [

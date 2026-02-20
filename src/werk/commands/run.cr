@@ -2,9 +2,8 @@ require "admiral"
 require "log"
 require "tallboy"
 require "colorize"
-require "docr"
-
 require "../config"
+require "../../docr"
 require "../scheduler"
 
 module Werk::Commands
@@ -45,7 +44,7 @@ module Werk::Commands
       short: "r"
 
     define_flag variables : Array(String),
-      description: "Export additional envionment variables",
+      description: "Export additional environment variables",
       long: "env",
       short: "e"
 
@@ -126,13 +125,12 @@ module Werk::Commands
 
     def cleanup(session_id : UUID)
       client = Docr::Client.new
-      api = Docr::API.new(client)
 
-      # Retrieveing the existing containers based on a unique label for this execution
+      # Retrieving the existing containers based on a unique label for this execution
       Log.debug { "Retrieve a list of running containers" }
-      containers = api.containers.list(
+      containers = client.containers.list(
         filters: {
-          "label": ["com.stuffo.werk.session_id=#{session_id}"],
+          "label" => ["com.stuffo.werk.session_id=#{session_id}"],
         }
       )
 
@@ -141,8 +139,8 @@ module Werk::Commands
       # Killing remaining containers and waiting for the execution to end
       containers.each do |container|
         Log.debug { "Stopping container '#{container.id}'" }
-        api.containers.kill(container.id, "SIGINT")
-        api.containers.wait(container.id)
+        client.containers.kill(container.id, "SIGINT")
+        client.containers.wait(container.id)
       end
     rescue ex
       Log.debug { ex.message }
