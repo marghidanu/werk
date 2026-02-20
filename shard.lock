@@ -4,14 +4,6 @@ shards:
     git: https://github.com/jwaldrip/admiral.cr.git
     version: 1.11.5
 
-  crystar:
-    git: https://github.com/naqvis/crystar.git
-    version: 0.4.0
-
-  docr:
-    git: https://github.com/marghidanu/docr.git
-    version: 0.1.4
-
   dotenv:
     git: https://github.com/gdotdesign/cr-dotenv.git
     version: 1.0.0
