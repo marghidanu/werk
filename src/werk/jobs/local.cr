@@ -4,7 +4,7 @@ module Werk::Jobs
   class Local < Werk::Config::Job
     Log = ::Log.for(self)
 
-    def run(session_id : UUID, name : String, context : String) : {Int32, String}
+    def run(session_id : UUID, name : String, context : String, variables : Hash(String, String)) : {Int32, String}
       script = script_file
       Log.debug { "Created temporary script file #{script.path}" }
 
@@ -17,7 +17,7 @@ module Werk::Jobs
       Log.debug { "Starting Shell process ..." }
       process = Process.new(script.path,
         shell: true,
-        env: @variables,
+        env: variables,
         output: output_io,
         error: output_io,
         chdir: context,
