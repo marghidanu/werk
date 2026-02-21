@@ -7,9 +7,7 @@ module Craph
 
     # Add a new node to the graph
     def add_node(name : T)
-      unless @adjacency_list.has_key?(name)
-        @adjacency_list[name] = Set(T).new
-      end
+      @adjacency_list[name] = Set(T).new unless @adjacency_list.has_key?(name)
     end
 
     # Adds an edge between two nodes. If the nodes don't exist they will be automatically added.
