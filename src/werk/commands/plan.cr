@@ -1,10 +1,3 @@
-require "admiral"
-require "tallboy"
-require "colorize"
-
-require "../config"
-require "../scheduler"
-
 module Werk::Commands
   class Plan < Admiral::Command
     define_help description: "List jobs information"
@@ -26,7 +19,7 @@ module Werk::Commands
       config = flags.stdin ? Werk::Config.load_string(STDIN.gets_to_end) : Werk::Config.load_file(flags.config)
 
       target = arguments.target || "main"
-      plan = Werk::Scheduler.new(config).get_plan(target)
+      plan = Werk::Pipeline.new(config).get_plan(target)
 
       table = Tallboy.table do
         plan.each_with_index do |stage, index|

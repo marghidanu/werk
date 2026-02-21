@@ -14,5 +14,8 @@ dependencies:
     version: 0.9.3
   dotenv:
     github: gdotdesign/cr-dotenv
+  mcp:
+    github: ralsina/mcp
+    version: 0.1.1
 crystal: 1.15.0
 license: MIT

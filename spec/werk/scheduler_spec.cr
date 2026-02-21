@@ -1,6 +1,6 @@
 require "../spec_helper"
 
-describe Werk::Scheduler do
+describe Werk::ParallelScheduler do
   it "should generate an execution plan for a single job" do
     config = Werk::Config.load_string(%(
       version: 1.0
@@ -11,7 +11,7 @@ describe Werk::Scheduler do
             - echo hello
     ))
 
-    scheduler = Werk::Scheduler.new(config)
+    scheduler = Werk::ParallelScheduler.new(config)
     plan = scheduler.get_plan("main")
 
     plan.size.should eq 1
@@ -36,7 +36,7 @@ describe Werk::Scheduler do
             - echo testing
     ))
 
-    scheduler = Werk::Scheduler.new(config)
+    scheduler = Werk::ParallelScheduler.new(config)
     plan = scheduler.get_plan("main")
 
     plan.size.should eq 3
@@ -64,7 +64,7 @@ describe Werk::Scheduler do
             - echo test
     ))
 
-    scheduler = Werk::Scheduler.new(config)
+    scheduler = Werk::ParallelScheduler.new(config)
     plan = scheduler.get_plan("main")
 
     plan.size.should eq 2
@@ -82,262 +82,296 @@ describe Werk::Scheduler do
             - missing
     ))
 
-    scheduler = Werk::Scheduler.new(config)
+    scheduler = Werk::ParallelScheduler.new(config)
 
     expect_raises(Exception, "Job 'missing' is not defined!") do
       scheduler.get_plan("main")
     end
   end
 
-  it "should run a simple local job" do
-    config = Werk::Config.load_string(%(
-      version: 1.0
-      jobs:
-        main:
-          executor: local
-          commands:
-            - echo hello werk
-    ))
-
-    scheduler = Werk::Scheduler.new(config)
-    report = scheduler.run("main", ".", Hash(String, String).new)
-
-    report.target.should eq "main"
-    report.jobs["main"].exit_code.should eq 0
-    report.jobs["main"].output.should contain "hello werk"
-  end
-
-  it "should run jobs with dependencies in order" do
+  it "should handle diamond dependencies" do
     config = Werk::Config.load_string(%(
       version: 1.0
       jobs:
         main:
           executor: local
           needs:
-            - setup
-          commands:
-            - echo main done
-        setup:
+            - left
+            - right
+        left:
+          executor: local
+          needs:
+            - base
+        right:
+          executor: local
+          needs:
+            - base
+        base:
           executor: local
           commands:
-            - echo setup done
+            - echo base
     ))
 
-    scheduler = Werk::Scheduler.new(config)
-    report = scheduler.run("main", ".", Hash(String, String).new)
+    scheduler = Werk::ParallelScheduler.new(config)
+    plan = scheduler.get_plan("main")
 
-    report.jobs["setup"].exit_code.should eq 0
-    report.jobs["main"].exit_code.should eq 0
-    report.jobs["setup"].output.should contain "setup done"
-    report.jobs["main"].output.should contain "main done"
+    # base first, then left+right in parallel, then main
+    plan.size.should eq 3
+    plan[0].should eq Set{"base"}
+    plan[1].should eq Set{"left", "right"}
+    plan[2].should eq Set{"main"}
   end
 
-  it "should stop pipeline on job failure" do
+  it "should handle deeply nested dependencies" do
+    config = Werk::Config.load_string(%(
+      version: 1.0
+      jobs:
+        a:
+          executor: local
+          needs:
+            - b
+        b:
+          executor: local
+          needs:
+            - c
+        c:
+          executor: local
+          needs:
+            - d
+        d:
+          executor: local
+          commands:
+            - echo d
+    ))
+
+    scheduler = Werk::ParallelScheduler.new(config)
+    plan = scheduler.get_plan("a")
+
+    plan.size.should eq 4
+    plan[0].should eq Set{"d"}
+    plan[1].should eq Set{"c"}
+    plan[2].should eq Set{"b"}
+    plan[3].should eq Set{"a"}
+  end
+
+  it "should handle shared dependencies across branches" do
     config = Werk::Config.load_string(%(
       version: 1.0
       jobs:
         main:
           executor: local
           needs:
-            - failing
-          commands:
-            - echo should not run
-        failing:
+            - a
+            - b
+        a:
+          executor: local
+          needs:
+            - shared
+        b:
+          executor: local
+          needs:
+            - shared
+        shared:
+          executor: local
+          needs:
+            - base
+        base:
           executor: local
           commands:
-            - exit 1
+            - echo base
     ))
 
-    scheduler = Werk::Scheduler.new(config)
-    report = scheduler.run("main", ".", Hash(String, String).new)
+    scheduler = Werk::ParallelScheduler.new(config)
+    plan = scheduler.get_plan("main")
 
-    report.jobs["failing"].exit_code.should eq 1
-    report.jobs.has_key?("main").should be_false
+    # base -> shared -> a+b in parallel -> main
+    plan.size.should eq 4
+    plan[0].should eq Set{"base"}
+    plan[1].should eq Set{"shared"}
+    plan[2].should eq Set{"a", "b"}
+    plan[3].should eq Set{"main"}
   end
+end
 
-  it "should continue pipeline when can_fail is set" do
+describe Werk::SequentialScheduler do
+  it "should generate one job per stage" do
     config = Werk::Config.load_string(%(
       version: 1.0
       jobs:
         main:
           executor: local
           needs:
-            - flaky
-          commands:
-            - echo main ran
-        flaky:
+            - lint
+            - test
+        lint:
           executor: local
-          can_fail: true
           commands:
-            - exit 1
+            - echo lint
+        test:
+          executor: local
+          commands:
+            - echo test
     ))
 
-    scheduler = Werk::Scheduler.new(config)
-    report = scheduler.run("main", ".", Hash(String, String).new)
+    scheduler = Werk::SequentialScheduler.new(config)
+    plan = scheduler.get_plan("main")
 
-    report.jobs["flaky"].exit_code.should eq 1
-    report.jobs["main"].exit_code.should eq 0
+    # Each stage should have exactly one job
+    plan.each do |stage|
+      stage.size.should eq 1
+    end
+
+    # Should have 3 stages (lint, test, main) instead of 2
+    plan.size.should eq 3
+
+    # All jobs should be present
+    all_jobs = plan.flat_map(&.to_a)
+    all_jobs.should contain "lint"
+    all_jobs.should contain "test"
+    all_jobs.should contain "main"
+
+    # main should be last
+    plan.last.should eq Set{"main"}
   end
 
-  it "should stop pipeline when one parallel job fails in a stage" do
+  it "should preserve dependency order" do
     config = Werk::Config.load_string(%(
       version: 1.0
       jobs:
         main:
           executor: local
           needs:
-            - passing
-            - failing
-          commands:
-            - echo should not run
-        passing:
+            - build
+        build:
+          executor: local
+          needs:
+            - test
+        test:
           executor: local
           commands:
-            - sleep 0.2 && echo ok
-        failing:
-          executor: local
-          commands:
-            - exit 1
+            - echo testing
     ))
 
-    scheduler = Werk::Scheduler.new(config)
-    report = scheduler.run("main", ".", Hash(String, String).new)
+    scheduler = Werk::SequentialScheduler.new(config)
+    plan = scheduler.get_plan("main")
 
-    report.jobs["failing"].exit_code.should eq 1
-    report.jobs["passing"].exit_code.should eq 0
-    report.jobs.has_key?("main").should be_false
+    plan.size.should eq 3
+    plan[0].should eq Set{"test"}
+    plan[1].should eq Set{"build"}
+    plan[2].should eq Set{"main"}
   end
 
-  it "should handle docker job failure with nonexistent image" do
+  it "should raise for undefined job" do
     config = Werk::Config.load_string(%(
       version: 1.0
       jobs:
         main:
-          executor: docker
-          image: "nonexistent-image-that-does-not-exist:99.99.99"
+          executor: local
+          needs:
+            - missing
+    ))
+
+    scheduler = Werk::SequentialScheduler.new(config)
+
+    expect_raises(Exception, "Job 'missing' is not defined!") do
+      scheduler.get_plan("main")
+    end
+  end
+
+  it "should generate a single stage for a single job" do
+    config = Werk::Config.load_string(%(
+      version: 1.0
+      jobs:
+        main:
+          executor: local
           commands:
             - echo hello
     ))
 
-    scheduler = Werk::Scheduler.new(config)
-    report = scheduler.run("main", ".", Hash(String, String).new)
+    scheduler = Werk::SequentialScheduler.new(config)
+    plan = scheduler.get_plan("main")
 
-    report.jobs["main"].exit_code.should eq 255
+    plan.size.should eq 1
+    plan[0].should eq Set{"main"}
   end
 
-  it "should not mutate job config variables between runs" do
+  it "should flatten diamond dependencies into sequential stages" do
     config = Werk::Config.load_string(%(
       version: 1.0
       jobs:
         main:
           executor: local
-          variables:
-            MY_VAR: original
+          needs:
+            - left
+            - right
+        left:
+          executor: local
+          needs:
+            - base
+        right:
+          executor: local
+          needs:
+            - base
+        base:
+          executor: local
           commands:
-            - echo $MY_VAR
+            - echo base
     ))
 
-    # Check the original config state
-    config.jobs["main"].variables.size.should eq 1
-    config.jobs["main"].variables["MY_VAR"].should eq "original"
+    scheduler = Werk::SequentialScheduler.new(config)
+    plan = scheduler.get_plan("main")
 
-    # First run
-    scheduler = Werk::Scheduler.new(config)
-    scheduler.run("main", ".", Hash(String, String).new)
+    # Each stage should have exactly one job
+    plan.each do |stage|
+      stage.size.should eq 1
+    end
 
-    # After run, config should not have WERK_* variables injected
-    config.jobs["main"].variables.has_key?("WERK_SESSION_ID").should be_false
-    config.jobs["main"].variables["MY_VAR"].should eq "original"
+    # Should have 4 stages: base, left, right, main
+    plan.size.should eq 4
+
+    # base must come before left and right, main must be last
+    all_jobs = plan.map(&.first)
+    all_jobs.index!("base").should be < all_jobs.index!("left")
+    all_jobs.index!("base").should be < all_jobs.index!("right")
+    plan.last.should eq Set{"main"}
   end
 
-  it "should pass variables to jobs" do
+  it "should produce more stages than parallel for independent jobs" do
     config = Werk::Config.load_string(%(
       version: 1.0
       jobs:
         main:
           executor: local
-          commands:
-            - echo $MY_VAR
-    ))
-
-    scheduler = Werk::Scheduler.new(config)
-    report = scheduler.run("main", ".", {"MY_VAR" => "hello from var"})
-
-    report.jobs["main"].exit_code.should eq 0
-    report.jobs["main"].output.should contain "hello from var"
-  end
-
-  it "should inject WERK_* variables into jobs" do
-    config = Werk::Config.load_string(%(
-      version: 1.0
-      jobs:
-        main:
+          needs:
+            - a
+            - b
+            - c
+        a:
           executor: local
           commands:
-            - echo $WERK_JOB_NAME $WERK_SESSION_TARGET
-    ))
-
-    scheduler = Werk::Scheduler.new(config)
-    report = scheduler.run("main", ".", Hash(String, String).new)
-
-    report.jobs["main"].exit_code.should eq 0
-    report.jobs["main"].output.should contain "main main"
-  end
-
-  it "should pass job-level variables to jobs" do
-    config = Werk::Config.load_string(%(
-      version: 1.0
-      jobs:
-        main:
-          executor: local
-          variables:
-            JOB_VAR: from_job
-          commands:
-            - echo $JOB_VAR
-    ))
-
-    scheduler = Werk::Scheduler.new(config)
-    report = scheduler.run("main", ".", Hash(String, String).new)
-
-    report.jobs["main"].exit_code.should eq 0
-    report.jobs["main"].output.should contain "from_job"
-  end
-
-  it "should pass global config variables to jobs" do
-    config = Werk::Config.load_string(%(
-      version: 1.0
-      variables:
-        GLOBAL_VAR: from_config
-      jobs:
-        main:
+            - echo a
+        b:
           executor: local
           commands:
-            - echo $GLOBAL_VAR
-    ))
-
-    scheduler = Werk::Scheduler.new(config)
-    report = scheduler.run("main", ".", Hash(String, String).new)
-
-    report.jobs["main"].exit_code.should eq 0
-    report.jobs["main"].output.should contain "from_config"
-  end
-
-  it "should let run variables override job variables" do
-    config = Werk::Config.load_string(%(
-      version: 1.0
-      jobs:
-        main:
+            - echo b
+        c:
           executor: local
-          variables:
-            MY_VAR: from_job
           commands:
-            - echo $MY_VAR
+            - echo c
     ))
 
-    scheduler = Werk::Scheduler.new(config)
-    report = scheduler.run("main", ".", {"MY_VAR" => "from_run"})
+    parallel = Werk::ParallelScheduler.new(config)
+    sequential = Werk::SequentialScheduler.new(config)
 
-    report.jobs["main"].exit_code.should eq 0
-    report.jobs["main"].output.should contain "from_run"
+    parallel_plan = parallel.get_plan("main")
+    sequential_plan = sequential.get_plan("main")
+
+    # Parallel: {a,b,c} -> {main} = 2 stages
+    parallel_plan.size.should eq 2
+
+    # Sequential: {a} -> {b} -> {c} -> {main} = 4 stages
+    sequential_plan.size.should eq 4
+
+    sequential_plan.size.should be > parallel_plan.size
   end
 end

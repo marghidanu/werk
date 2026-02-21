@@ -1,11 +1,3 @@
-require "admiral"
-require "log"
-require "tallboy"
-require "colorize"
-require "../config"
-require "../../docr"
-require "../scheduler"
-
 module Werk::Commands
   class Run < Admiral::Command
     Log = ::Log.for(self)
@@ -59,40 +51,38 @@ module Werk::Commands
 
       # Parsing additional variables
       variables = Hash(String, String).new
-      variables["WERK_YES"] = flags.yes.to_s
       flags.variables.each do |item|
         data = item.match(/^(?P<name>[[:alpha:]_][[:alpha:][:digit:]_]*)=(?P<value>.*)$/)
         variables[data["name"]] = data["value"] if data
       end
 
-      # Override max_jobs if a different value is specified ar an flag
-      if flags.max_jobs > 0
-        config.max_jobs = flags.max_jobs
-      end
+      # Override max_jobs if a different value is specified as a flag
+      config.max_jobs = flags.max_jobs if flags.max_jobs > 0
 
-      # Creating the scheduler ...
-      scheduler = Werk::Scheduler.new(config)
+      # Creating the pipeline ...
+      pipeline = Werk::Pipeline.new(config)
 
       [Signal::INT, Signal::TERM].each do |signal|
         signal.trap {
           Log.debug { "Captured #{signal}!" }
-          cleanup(scheduler.session_id)
+          pipeline.terminate
         }
       end
 
       # ... and running the job
-      report = scheduler.run(
+      report = pipeline.run(
         target: (arguments.target || "main"),
-        context: flags.context,
+        cwd: flags.context,
         variables: variables,
+        yes: flags.yes,
       )
 
-      if flags.report
-        display_report(report)
-      end
+      display_report(report) if flags.report
+
+      exit 1 if pipeline.terminated?
     end
 
-    def display_report(report)
+    def display_report(result)
       table = Tallboy.table do
         header do
           cell "Name", align: :center
@@ -103,49 +93,19 @@ module Werk::Commands
           cell "Executor", align: :center
         end
 
-        report.plan.each_with_index do |stage, index|
-          stage.each do |name|
-            next unless report.jobs.has_key?(name)
-            job = report.jobs[name]
-
-            row border: :bottom do
-              cell job.name
-              cell index
-              cell (job.exit_code == 0) ? "OK".colorize(:green) : "Failed".colorize(:red), align: :center
-              cell job.exit_code
-              cell sprintf("%.3f secs", job.duration)
-              cell job.executor
-            end
+        result.jobs.each do |job|
+          row border: :bottom do
+            cell job.name
+            cell job.stage_id
+            cell job.success? ? "OK".colorize(:green) : "Failed".colorize(:red), align: :center
+            cell job.exit_code
+            cell sprintf("%.3f secs", job.duration)
+            cell job.executor
           end
         end
       end
 
       puts table
-    end
-
-    def cleanup(session_id : UUID)
-      client = Docr::Client.new
-
-      # Retrieving the existing containers based on a unique label for this execution
-      Log.debug { "Retrieve a list of running containers" }
-      containers = client.containers.list(
-        filters: {
-          "label" => ["com.stuffo.werk.session_id=#{session_id}"],
-        }
-      )
-
-      Log.debug { "Killing #{containers.size} containers..." }
-
-      # Killing remaining containers and waiting for the execution to end
-      containers.each do |container|
-        Log.debug { "Stopping container '#{container.id}'" }
-        client.containers.kill(container.id, "SIGINT")
-        client.containers.wait(container.id)
-      end
-    rescue ex
-      Log.debug { ex.message }
-    ensure
-      exit 1
     end
   end
 end
