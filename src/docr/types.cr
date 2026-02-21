@@ -30,10 +30,11 @@ module Docr
       @entrypoint = nil,
       @cmd = nil,
       @working_dir = nil,
-      @env = nil,
+      env : Hash(String, String)? = nil,
       @labels = nil,
       @host_config = nil,
     )
+      @env = env.try &.map { |k, v| "#{k}=#{v}" }
     end
   end
 

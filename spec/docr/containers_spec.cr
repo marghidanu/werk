@@ -3,6 +3,7 @@ require "../spec_helper"
 describe Docr::Containers do
   it "should capture stdout and stderr logs" do
     client = Docr::Client.new
+    client.containers.delete("docr-test-logs", force: true) rescue nil
 
     container = client.containers.create(
       "docr-test-logs",
@@ -30,6 +31,7 @@ describe Docr::Containers do
 
   it "should capture non-zero exit code" do
     client = Docr::Client.new
+    client.containers.delete("docr-test-exit", force: true) rescue nil
 
     container = client.containers.create(
       "docr-test-exit",
@@ -56,7 +58,7 @@ describe Docr::ContainerConfig do
       image: "alpine:latest",
       cmd: ["/bin/sh"],
       working_dir: "/opt",
-      env: ["FOO=bar"],
+      env: {"FOO" => "bar"},
       labels: {"app" => "test"},
     )
 

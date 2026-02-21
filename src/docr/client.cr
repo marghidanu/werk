@@ -5,10 +5,17 @@ require "uri"
 
 module Docr
   class Client
+    Log = ::Log.for(self)
+
     getter host : String
     getter api_version : String
 
-    def initialize(@host = "unix:///var/run/docker.sock", @api_version = "v1.47")
+    SOCKET_PATHS = [
+      Path.home / ".docker" / "run" / "docker.sock",
+      Path["/var/run/docker.sock"],
+    ]
+
+    def initialize(@host = self.class.detect_host, @api_version = "v1.47")
       uri = URI.parse(@host)
 
       case uri.scheme
@@ -21,6 +28,20 @@ module Docr
       else
         raise ArgumentError.new("Unsupported Docker host scheme: #{uri.scheme}")
       end
+    end
+
+    def self.detect_host : String
+      if ENV.has_key?("DOCKER_HOST")
+        Log.debug { "Using DOCKER_HOST=#{ENV["DOCKER_HOST"]}" }
+        return ENV["DOCKER_HOST"]
+      end
+
+      path = SOCKET_PATHS.find { |sock| File.exists?(sock) }
+      raise "Docker socket not found. Set DOCKER_HOST or ensure Docker is running." unless path
+
+      host = URI.new(scheme: "unix", host: "", path: path.to_s).to_s
+      Log.debug { "Detected Docker socket: #{host}" }
+      host
     end
 
     def images : Images
