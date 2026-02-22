@@ -12,6 +12,9 @@ module Werk
     register_sub_command mcp : Werk::Commands::Mcp,
       description: "Start MCP server"
 
+    register_sub_command vault : Werk::Commands::Vault,
+      description: "Manage encrypted dotenv files"
+
     def run
       puts help
     end

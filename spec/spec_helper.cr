@@ -10,6 +10,7 @@ require "digest/md5"
 require "../src/craph"
 require "../src/docr"
 require "../src/gitleaks"
+require "../src/vault"
 
 require "../src/werk/config/*"
 require "../src/werk/config/jobs/*"

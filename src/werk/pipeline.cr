@@ -33,9 +33,7 @@ module Werk
 
       raise "Max parallel jobs must be greater than 0!" if @config.max_jobs < 1
 
-      dotenv_vars = @config.dotenv.reduce(Hash(String, String).new) do |acc, file|
-        acc.merge(Dotenv.load(file))
-      end
+      dotenv_vars, vault_passwords = Vault.load_dotenv_files(@config.dotenv)
 
       all_jobs = Array(Werk::Executors::ExecutionResult).new
 
@@ -53,9 +51,8 @@ module Werk
           batch.each_with_index do |name, job_id|
             job = @config.jobs[name]
 
-            job_dotenv_vars = job.dotenv.reduce(Hash(String, String).new) do |acc, file|
-              acc.merge(Dotenv.load(file))
-            end
+            job_dotenv_vars, vault_passwords = Vault.load_dotenv_files(job.dotenv, vault_passwords)
+
             executor = @executors[job.executor]? || raise "Unknown executor: #{job.executor}"
 
             ctx = Werk::Context.new(
@@ -110,6 +107,8 @@ module Werk
       end
 
       PipelineResult.new(target: target, jobs: all_jobs)
+    ensure
+      Vault.wipe_passwords(vault_passwords) if vault_passwords
     end
 
     # Immediately terminate all running executors

@@ -4,6 +4,10 @@ shards:
     git: https://github.com/jwaldrip/admiral.cr.git
     version: 1.11.5
 
+  ameba:
+    git: https://github.com/crystal-ameba/ameba.git
+    version: 1.6.4
+
   backtracer:
     git: https://github.com/sija/backtracer.cr.git
     version: 1.2.4

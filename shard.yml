@@ -17,5 +17,8 @@ dependencies:
   mcp:
     github: ralsina/mcp
     version: 0.1.1
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
 crystal: 1.15.0
 license: MIT

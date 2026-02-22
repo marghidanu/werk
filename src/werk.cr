@@ -11,6 +11,7 @@ require "digest/md5"
 require "../src/craph"
 require "../src/docr"
 require "../src/gitleaks"
+require "../src/vault"
 
 require "./werk/config/*"
 require "./werk/config/jobs/*"

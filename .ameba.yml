@@ -4,5 +4,6 @@ Lint/UselessAssign:
   Excluded:
   - src/werk/commands/plan.cr
   - src/werk/commands/run.cr
+  - src/werk/commands/vault.cr
   - src/werk/application.cr
   Enabled: true

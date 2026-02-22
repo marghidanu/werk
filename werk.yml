@@ -2,6 +2,9 @@ version: "1"
 
 description: "Manage Werk with Werk"
 
+dotenv:
+  - .env
+
 jobs:
   main:
     description: "Build application"
@@ -94,31 +97,11 @@ jobs:
     commands:
       - export | grep WERK
 
-  visual:
-    description: Visual test for parallel output
+  vault:test:
     executor: local
-    needs:
-      - visual:alpha
-      - visual:beta
-
-  visual:alpha:
-    description: First parallel job
-    executor: local
+    description: "Test vault encryption and decryption"
+    dotenv:
+      - .env
+      - .env.production
     commands:
-      - |
-        for i in 1 2 3 4 5; do
-          echo "Alpha processing step $i..."
-          sleep 0.1
-        done
-        echo "Alpha done!"
-
-  visual:beta:
-    description: Second parallel job
-    executor: local
-    commands:
-      - |
-        for i in 1 2 3 4 5; do
-          echo "Beta crunching item $i..."
-          sleep 0.1
-        done
-        echo "Beta done!"
+      - export | grep WERK
