@@ -1,22 +1,42 @@
 module Werk
-  class Application < Admiral::Command
-    define_version Werk::VERSION
-    define_help description: "Werk"
+  module Application
+    def self.run
+      if ARGV.empty?
+        print_help
+        return
+      end
 
-    register_sub_command plan : Werk::Commands::Plan,
-      description: "Display execution plan"
+      case ARGV.shift
+      when "plan"
+        Werk::Commands::Plan.run(ARGV)
+      when "run"
+        Werk::Commands::Run.run(ARGV)
+      when "mcp"
+        Werk::Commands::Mcp.run(ARGV)
+      when "vault"
+        Werk::Commands::Vault.run(ARGV)
+      when "--version", "-v"
+        puts "werk #{Werk::VERSION}"
+      when "--help", "-h"
+        print_help
+      else
+        STDERR.puts "Unknown command. Use --help for usage."
+        exit 1
+      end
+    end
 
-    register_sub_command run : Werk::Commands::Run,
-      description: "Run a job by name"
-
-    register_sub_command mcp : Werk::Commands::Mcp,
-      description: "Start MCP server"
-
-    register_sub_command vault : Werk::Commands::Vault,
-      description: "Manage encrypted dotenv files"
-
-    def run
-      puts help
+    private def self.print_help
+      puts "werk #{Werk::VERSION}"
+      puts
+      puts "Usage: werk <command> [options]"
+      puts
+      puts "Commands:"
+      puts "  plan     Display execution plan"
+      puts "  run      Run a job by name"
+      puts "  mcp      Start MCP server"
+      puts "  vault    Manage encrypted dotenv files"
+      puts
+      puts "Use 'werk <command> --help' for more information on a command."
     end
   end
 

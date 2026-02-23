@@ -1,20 +1,39 @@
 require "./vault/*"
 
 module Werk::Commands
-  class Vault < Admiral::Command
-    define_help description: "Manage encrypted dotenv files"
+  module Vault
+    def self.run(args : Array(String))
+      if args.empty?
+        print_help
+        return
+      end
 
-    register_sub_command encrypt : Werk::Commands::Encrypt,
-      description: "Encrypt dotenv file values"
+      case args.shift
+      when "encrypt"
+        Werk::Commands::Encrypt.run(args)
+      when "decrypt"
+        Werk::Commands::Decrypt.run(args)
+      when "rekey"
+        Werk::Commands::Rekey.run(args)
+      when "--help", "-h"
+        print_help
+      else
+        STDERR.puts "Unknown vault command. Use 'werk vault --help' for usage."
+        exit 1
+      end
+    end
 
-    register_sub_command decrypt : Werk::Commands::Decrypt,
-      description: "Decrypt dotenv file values"
-
-    register_sub_command rekey : Werk::Commands::Rekey,
-      description: "Re-encrypt dotenv files with a new password"
-
-    def run
-      puts help
+    private def self.print_help
+      puts "Usage: werk vault <command> [options]"
+      puts
+      puts "Manage encrypted dotenv files"
+      puts
+      puts "Commands:"
+      puts "  encrypt   Encrypt dotenv file values"
+      puts "  decrypt   Decrypt dotenv file values"
+      puts "  rekey     Re-encrypt dotenv files with a new password"
+      puts
+      puts "Use 'werk vault <command> --help' for more information on a command."
     end
   end
 end

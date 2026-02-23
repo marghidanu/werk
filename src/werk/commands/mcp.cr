@@ -1,30 +1,31 @@
 module Werk::Commands
-  class Mcp < Admiral::Command
-    define_help description: "Start MCP server"
+  module Mcp
+    def self.run(args : Array(String))
+      config_file = "werk.yml"
+      cwd = "."
+      readonly = false
 
-    # ameba:disable Lint/UselessAssign
-    define_flag config : String,
-      description: "Configuration file name",
-      default: "werk.yml",
-      short: "c"
+      parser = OptionParser.new do |opt|
+        opt.banner = "Usage: werk mcp [options]"
+        opt.separator ""
+        opt.separator "Start MCP server"
+        opt.separator ""
 
-    # ameba:disable Lint/UselessAssign
-    define_flag cwd : String,
-      description: "Working directory",
-      default: ".",
-      short: "x"
+        opt.on("-c CONFIG", "--config=CONFIG", "Configuration file name (default: werk.yml)") { |v| config_file = v }
+        opt.on("-x DIR", "--cwd=DIR", "Working directory (default: .)") { |v| cwd = v }
+        opt.on("-r", "--readonly", "Read-only mode (no job execution)") { readonly = true }
+        opt.on("-h", "--help", "Show this help") { puts opt; exit 0 }
 
-    # ameba:disable Lint/UselessAssign
-    define_flag readonly : Bool,
-      description: "Read-only mode (no job execution)",
-      default: false,
-      short: "r"
+        opt.invalid_option { |flag| STDERR.puts "Error: Unknown option '#{flag}'"; STDERR.puts opt; exit 1 }
+        opt.missing_option { |flag| STDERR.puts "Error: Missing value for '#{flag}'"; STDERR.puts opt; exit 1 }
+      end
 
-    def run
-      Werk::Mcp::Context.config_path = flags.config
-      Werk::Mcp::Context.cwd = flags.cwd
+      parser.parse(args)
 
-      MCP.registered_tools.delete("run_job") if flags.readonly
+      Werk::Mcp::Context.config_path = config_file
+      Werk::Mcp::Context.cwd = cwd
+
+      MCP.registered_tools.delete("run_job") if readonly
 
       # Suppress job output to STDOUT — it would corrupt the JSON-RPC stream
       Werk::Utils::PrefixIO.enabled = false

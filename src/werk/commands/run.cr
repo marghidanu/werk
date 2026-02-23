@@ -1,63 +1,49 @@
 module Werk::Commands
-  class Run < Admiral::Command
+  module Run
     Log = ::Log.for(self)
 
-    define_help description: "Run target"
+    def self.run(args : Array(String))
+      config_file = "werk.yml"
+      context = "."
+      max_jobs = 0_u32
+      from_stdin = false
+      show_report = false
+      env_vars_raw = [] of String
+      yes = false
 
-    define_argument target : String,
-      description: "Target job name",
-      default: "main"
+      parser = OptionParser.new do |opt|
+        opt.banner = "Usage: werk run [target] [options]"
+        opt.separator ""
+        opt.separator "Run a job by name"
+        opt.separator ""
 
-    define_flag config : String,
-      description: "Configuration file name",
-      default: "werk.yml",
-      long: "config",
-      short: "c"
+        opt.on("-c CONFIG", "--config=CONFIG", "Configuration file name (default: werk.yml)") { |v| config_file = v }
+        opt.on("-x DIR", "--context=DIR", "Working directory (default: .)") { |v| context = v }
+        opt.on("-j JOBS", "--jobs=JOBS", "Max parallel jobs (default: 0 = auto)") { |v| max_jobs = v.to_u32 }
+        opt.on("--stdin", "Read configuration from STDIN") { from_stdin = true }
+        opt.on("-r", "--report", "Display execution report") { show_report = true }
+        opt.on("-e VAR", "--env=VAR", "Export additional environment variables (repeatable)") { |v| env_vars_raw << v }
+        opt.on("-y", "--yes", "Set WERK_YES to true") { yes = true }
+        opt.on("-h", "--help", "Show this help") { puts opt; exit 0 }
 
-    define_flag context : String,
-      description: "Working directory",
-      default: ".",
-      long: "context",
-      short: "x"
+        opt.invalid_option { |flag| STDERR.puts "Error: Unknown option '#{flag}'"; STDERR.puts opt; exit 1 }
+        opt.missing_option { |flag| STDERR.puts "Error: Missing value for '#{flag}'"; STDERR.puts opt; exit 1 }
+      end
 
-    define_flag max_jobs : UInt32,
-      description: "Max parallel jobs",
-      default: 0_u32,
-      long: "jobs",
-      short: "j"
+      parser.parse(args)
+      target = args.first? || "main"
 
-    define_flag stdin : Bool,
-      description: "Read configuration from STDIN",
-      long: "stdin"
-
-    define_flag report : Bool,
-      description: "Display execution report",
-      long: "report",
-      short: "r"
-
-    define_flag variables : Array(String),
-      description: "Export additional environment variables",
-      long: "env",
-      short: "e"
-
-    define_flag yes : Bool,
-      description: "Set flag for WERK_YES to true",
-      long: "yes",
-      short: "y",
-      default: false
-
-    def run
-      config = flags.stdin ? Werk::Config.load_string(STDIN.gets_to_end) : Werk::Config.load_file(flags.config)
+      config = from_stdin ? Werk::Config.load_string(STDIN.gets_to_end) : Werk::Config.load_file(config_file)
 
       # Parsing additional variables
       variables = Hash(String, String).new
-      flags.variables.each do |item|
+      env_vars_raw.each do |item|
         data = item.match(/^(?P<name>[[:alpha:]_][[:alpha:][:digit:]_]*)=(?P<value>.*)$/)
         variables[data["name"]] = data["value"] if data
       end
 
       # Override max_jobs if a different value is specified as a flag
-      config.max_jobs = flags.max_jobs if flags.max_jobs > 0
+      config.max_jobs = max_jobs if max_jobs > 0
 
       # Creating the pipeline ...
       pipeline = Werk::Pipeline.new(config)
@@ -71,18 +57,18 @@ module Werk::Commands
 
       # ... and running the job
       report = pipeline.run(
-        target: (arguments.target || "main"),
-        cwd: flags.context,
+        target: target,
+        cwd: context,
         variables: variables,
-        yes: flags.yes,
+        yes: yes,
       )
 
-      display_report(report) if flags.report
+      display_report(report) if show_report
 
       exit 1 if pipeline.terminated?
     end
 
-    def display_report(result)
+    def self.display_report(result)
       table = Tallboy.table do
         header do
           cell "Name", align: :center

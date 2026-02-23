@@ -1,16 +1,25 @@
 module Werk::Commands
-  class Encrypt < Admiral::Command
-    define_help description: "Encrypt dotenv file values"
+  module Encrypt
+    def self.run(args : Array(String))
+      parser = OptionParser.new do |opt|
+        opt.banner = "Usage: werk vault encrypt <file> [file...]"
+        opt.separator ""
+        opt.separator "Encrypt dotenv file values"
+        opt.separator ""
 
-    def run
-      files = arguments.rest
-      raise "Usage: werk vault encrypt <file> [file...]" if files.empty?
+        opt.on("-h", "--help", "Show this help") { puts opt; exit 0 }
 
-      files.each { |file| raise "File not found: #{file}" unless File.exists?(file) }
+        opt.invalid_option { |flag| STDERR.puts "Error: Unknown option '#{flag}'"; STDERR.puts opt; exit 1 }
+      end
+
+      parser.parse(args)
+      raise "Usage: werk vault encrypt <file> [file...]" if args.empty?
+
+      args.each { |file| raise "File not found: #{file}" unless File.exists?(file) }
 
       password = ::Vault.prompt_password(confirm: true)
 
-      files.each do |file|
+      args.each do |file|
         content = File.read(file)
         encrypted, skipped = ::Vault.encrypt_file(content, password)
         File.write(file, encrypted)
