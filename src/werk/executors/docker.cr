@@ -2,6 +2,11 @@ module Werk::Executors
   class Docker < Base
     Log = ::Log.for(self)
 
+    # Per-image pull locks: when parallel jobs share an image, only the
+    # first one pulls while the others wait, avoiding redundant downloads.
+    @@pull_mutexes = Hash(String, Mutex).new
+    @@pull_meta_mutex = Mutex.new
+
     @container_id : String?
 
     def initialize
@@ -15,15 +20,8 @@ module Werk::Executors
     ) : Int32
       job = job_config.as(Werk::Config::DockerJob)
 
-      # Ensure the image is available locally
-      if @client.images.exists?(job.image)
-        Log.debug { "Image #{job.image} was found locally" }
-      else
-        output.puts "Pulling image #{job.image}..."
-        repository, tag = Docr::Utils.parse_repository_tag(job.image)
-        @client.images.pull(repository, tag)
-        output.puts "Image #{job.image} pulled successfully"
-      end
+      # Ensure the image is available locally (one pull per image)
+      ensure_image(job.image, output)
 
       # Create container
       container_name = "#{Digest::MD5.hexdigest(ctx.name)}-#{ctx.session_id}"
@@ -76,6 +74,23 @@ module Werk::Executors
       end
     rescue ex
       Log.debug { "Failed to kill container: #{ex.message}" }
+    end
+
+    private def ensure_image(image : String, output : IO) : Nil
+      mutex = @@pull_meta_mutex.synchronize do
+        @@pull_mutexes[image] ||= Mutex.new
+      end
+
+      mutex.synchronize do
+        if @client.images.exists?(image)
+          Log.debug { "Image #{image} was found locally" }
+        else
+          output.puts "Pulling image #{image}..."
+          repository, tag = Docr::Utils.parse_repository_tag(image)
+          @client.images.pull(repository, tag)
+          output.puts "Image #{image} pulled successfully"
+        end
+      end
     end
   end
 end
