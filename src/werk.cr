@@ -28,5 +28,5 @@ require "./werk/commands/*"
 require "./werk/application"
 
 module Werk
-  VERSION = "0.0.0"
+  VERSION = {{ env("APP_VERSION") || "0.0.0" }}
 end
