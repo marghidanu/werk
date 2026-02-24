@@ -46,6 +46,13 @@ module Docr
       host
     end
 
+    def self.available? : Bool
+      detect_host
+      true
+    rescue DockerError
+      false
+    end
+
     def images : Images
       @images ||= Images.new(self)
     end

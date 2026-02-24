@@ -2,6 +2,8 @@ require "../spec_helper"
 
 describe Docr::Containers do
   it "should capture stdout and stderr logs" do
+    pending!("Docker not available") unless Docr::Client.available?
+
     client = Docr::Client.new
     client.containers.delete("docr-test-logs", force: true) rescue nil
 
@@ -30,6 +32,8 @@ describe Docr::Containers do
   end
 
   it "should capture non-zero exit code" do
+    pending!("Docker not available") unless Docr::Client.available?
+
     client = Docr::Client.new
     client.containers.delete("docr-test-exit", force: true) rescue nil
 

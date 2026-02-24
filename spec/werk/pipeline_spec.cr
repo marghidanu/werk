@@ -121,6 +121,8 @@ describe Werk::Pipeline do
   end
 
   it "should handle docker job failure with nonexistent image" do
+    pending!("Docker not available") unless Docr::Client.available?
+
     config = Werk::Config.load_string(%(
       version: 1.0
       jobs:

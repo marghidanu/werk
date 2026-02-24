@@ -34,11 +34,10 @@ jobs:
         run: crystal run bin/ameba.cr
 
   test:
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest]
-    
-    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Install Crystal
@@ -51,10 +50,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libyaml-dev
+          GITLEAKS_VERSION=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | grep -Po '"tag_name": "v\K[^"]+')
+          wget -qO- "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | sudo tar xz -C /usr/local/bin gitleaks
 
       - name: Additional macOS dependencies
         if: contains(matrix.os, 'macos')
-        run: brew install openssl
+        run: brew install openssl gitleaks
 
       - name: Checkout code
         uses: actions/checkout@v4

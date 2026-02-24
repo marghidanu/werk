@@ -8,9 +8,10 @@ module Werk::Executors
     @@pull_meta_mutex = Mutex.new
 
     @container_id : String?
+    @client : Docr::Client?
 
-    def initialize
-      @client = Docr::Client.new
+    private def client : Docr::Client
+      @client ||= Docr::Client.new
     end
 
     protected def perform(
@@ -26,7 +27,7 @@ module Werk::Executors
       # Create container
       container_name = "#{Digest::MD5.hexdigest(ctx.name)}-#{ctx.session_id}"
       Log.debug { "Creating container '#{container_name}'" }
-      container = @client.containers.create(
+      container = client.containers.create(
         container_name,
         Docr::ContainerConfig.new(
           image: job.image,
@@ -51,16 +52,16 @@ module Werk::Executors
 
       begin
         Log.debug { "Starting container '#{container_name}'" }
-        @client.containers.start(container.id)
+        client.containers.start(container.id)
 
         Log.debug { "Streaming logs for '#{container_name}'" }
-        @client.containers.logs(container.id, output: output, follow: true, stdout: true, stderr: true)
+        client.containers.logs(container.id, output: output, follow: true, stdout: true, stderr: true)
 
         # Wait for the container execution to end and retrieve the exit code.
-        status = @client.containers.wait(container.id)
+        status = client.containers.wait(container.id)
       ensure
         Log.debug { "Removing container '#{container_name}'" }
-        @client.containers.delete(container.id, force: true)
+        client.containers.delete(container.id, force: true)
         @container_id = nil
       end
 
@@ -70,7 +71,7 @@ module Werk::Executors
     def terminate : Nil
       if container_id = @container_id
         Log.debug { "Terminating container '#{container_id}'" }
-        @client.containers.kill(container_id, "SIGTERM")
+        client.containers.kill(container_id, "SIGTERM")
       end
     rescue ex : Docr::DockerError
       Log.debug { "Failed to kill container: #{ex.message}" }
@@ -82,12 +83,12 @@ module Werk::Executors
       end
 
       mutex.synchronize do
-        if @client.images.exists?(image)
+        if client.images.exists?(image)
           Log.debug { "Image #{image} was found locally" }
         else
           output.puts "Pulling image #{image}..."
           repository, tag = Docr::Utils.parse_repository_tag(image)
-          @client.images.pull(repository, tag)
+          client.images.pull(repository, tag)
           output.puts "Image #{image} pulled successfully"
         end
       end
