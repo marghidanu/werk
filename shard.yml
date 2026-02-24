@@ -1,10 +1,14 @@
 name: werk
 version: 0.0.0
+description: A simple task runner with parallel execution and Docker support
+repository: https://github.com/marghidanu/werk
 authors:
   - tudor@marghidanu.com
+
 targets:
   werk:
     main: src/werk.cr
+
 dependencies:
   tallboy:
     github: epoch/tallboy
@@ -14,8 +18,10 @@ dependencies:
   mcp:
     github: ralsina/mcp
     branch: main
+
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
-crystal: 1.15.0
+
+crystal: ">= 1.19.0"
 license: MIT
