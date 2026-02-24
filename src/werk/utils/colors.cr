@@ -17,7 +17,18 @@ module Werk::Utils
         end
       end
 
-      colors.shuffle(Random.new(42))
+      # Reorder with maximum spacing: stride by golden-ratio step
+      # so consecutive picks are perceptually far apart.
+      n = colors.size
+      step = (n * 0.618).to_i.clamp(1, n - 1)
+      spaced = Array(Colorize::Color256).new(n)
+      idx = 0
+      n.times do
+        spaced << colors[idx]
+        idx = (idx + step) % n
+      end
+
+      spaced
     end
 
     @@index = 0
