@@ -4,12 +4,20 @@ module Werk::Utils
 
     REDACT_CHAR = 'X'
 
-    @@scanner = Gitleaks::Scanner.new
+    @@scanner : Gitleaks::Scanner?
+
+    begin
+      @@scanner = Gitleaks::Scanner.new
+    rescue ex
+      Log.warn { "Secret redaction disabled: #{ex.message}" }
+      @@scanner = nil
+    end
 
     def self.redact(text : String) : String
-      return text if text.empty?
+      scanner = @@scanner
+      return text if scanner.nil? || text.empty?
 
-      findings = @@scanner.scan(text)
+      findings = scanner.scan(text)
       return text if findings.empty?
 
       Log.debug { "Redacted #{findings.size} secret(s) from output" }

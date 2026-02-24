@@ -18,6 +18,6 @@ class Werk::Mcp::ListJobsTool < MCP::AbstractTool
       }
     end
 
-    {"content" => [{"type" => "text", "text" => {"jobs" => jobs}.to_json}]}
+    {"jobs" => jobs}
   end
 end

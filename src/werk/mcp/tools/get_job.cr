@@ -29,6 +29,6 @@ class Werk::Mcp::GetJobTool < MCP::AbstractTool
       "silent"       => job.silent?,
     }
 
-    {"content" => [{"type" => "text", "text" => data.to_json}]}
+    data
   end
 end

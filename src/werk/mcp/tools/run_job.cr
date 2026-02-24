@@ -8,6 +8,18 @@ class Werk::Mcp::RunJobTool < MCP::AbstractTool
         "type"        => "string",
         "description" => "The target job name to execute",
       },
+      "variables" => {
+        "type"        => "object",
+        "description" => "Environment variables to pass to the job (key-value pairs)",
+      },
+      "yes" => {
+        "type"        => "boolean",
+        "description" => "Set WERK_YES to true (auto-confirm prompts)",
+      },
+      "max_jobs" => {
+        "type"        => "integer",
+        "description" => "Max parallel jobs (0 = auto, based on CPU count)",
+      },
     },
     "required" => ["target"],
   }.to_json
@@ -15,14 +27,22 @@ class Werk::Mcp::RunJobTool < MCP::AbstractTool
   def invoke(params : Hash(String, JSON::Any), env : HTTP::Server::Context? = nil)
     config = Werk::Mcp::Context.config
     target = params["target"]?.try(&.as_s) || raise "Missing required parameter: target"
+    yes = params["yes"]?.try(&.as_bool?) || false
+    max_jobs = params["max_jobs"]?.try(&.as_i?) || 0
+    variables = (params["variables"]?.try(&.as_h?) || {} of String => JSON::Any).transform_values(&.as_s)
+    config.max_jobs = max_jobs if max_jobs > 0
 
+    Werk::Utils::PrefixIO.enabled = false
     pipeline = Werk::Pipeline.new(config)
     result = pipeline.run(
       target: target,
       cwd: Werk::Mcp::Context.cwd,
-      variables: Hash(String, String).new,
+      variables: variables,
+      yes: yes,
     )
 
-    {"content" => [{"type" => "text", "text" => result.to_json}]}
+    {"result" => result}
+  ensure
+    Werk::Utils::PrefixIO.enabled = true
   end
 end

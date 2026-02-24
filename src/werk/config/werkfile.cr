@@ -18,7 +18,7 @@ module Werk
     getter variables = Hash(String, String).new
 
     @[YAML::Field(key: "max_jobs")]
-    property max_jobs : UInt32 = 32_u32
+    property max_jobs : Int32 = 0
 
     # Jobs available in the current configuration
     @[YAML::Field(key: "jobs")]

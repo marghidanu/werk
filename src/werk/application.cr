@@ -33,7 +33,7 @@ module Werk
       puts "Commands:"
       puts "  plan     Display execution plan"
       puts "  run      Run a job by name"
-      puts "  mcp      Start MCP server"
+      puts "  mcp      Start MCP server (experimental)"
       puts "  vault    Manage encrypted dotenv files"
       puts
       puts "Use 'werk <command> --help' for more information on a command."

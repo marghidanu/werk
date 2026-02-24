@@ -2,9 +2,6 @@ version: "1"
 
 description: "Manage Werk with Werk"
 
-dotenv:
-  - .env
-
 jobs:
   main:
     description: "Build application"
@@ -94,14 +91,5 @@ jobs:
   vars:
     description: Show variables
     executor: local
-    commands:
-      - export | grep WERK
-
-  vault:test:
-    executor: local
-    description: "Test vault encryption and decryption"
-    dotenv:
-      - .env
-      - .env.production
     commands:
       - export | grep WERK

@@ -8,7 +8,7 @@ module Werk::Commands
       parser = OptionParser.new do |opt|
         opt.banner = "Usage: werk mcp [options]"
         opt.separator ""
-        opt.separator "Start MCP server"
+        opt.separator "Start MCP server (experimental)"
         opt.separator ""
 
         opt.on("-c CONFIG", "--config=CONFIG", "Configuration file name (default: werk.yml)") { |v| config_file = v }
@@ -25,28 +25,24 @@ module Werk::Commands
       Werk::Mcp::Context.config_path = config_file
       Werk::Mcp::Context.cwd = cwd
 
-      MCP.registered_tools.delete("run_job") if readonly
-
-      # Suppress job output to STDOUT — it would corrupt the JSON-RPC stream
-      Werk::Utils::PrefixIO.enabled = false
-
-      STDERR.puts "MCP server started. Available tools: #{MCP.registered_tools.keys.join(", ")}"
-      STDERR.flush
-
-      # NOTE: Custom stdio loop instead of MCP::StdioHandler.start_server because
-      # start_server prints a plain-text banner to STDOUT, which corrupts
-      # the JSON-RPC stream. See: https://github.com/ralsina/mcp/issues/1
-      while !STDIN.closed?
-        line = STDIN.gets
-        break unless line
-
-        line = line.strip
-        next if line.empty?
-
-        response = MCP::StdioHandler.handle_request(line)
-        STDOUT.puts response
-        STDOUT.flush
+      if readonly
+        MCP.registered_tools.delete("run_job")
       end
+
+      print_banner(readonly)
+      MCP::StdioHandler.start_server
+    end
+
+    private def self.print_banner(readonly : Bool)
+      STDERR.puts "werk #{Werk::VERSION} — MCP server (experimental)"
+      STDERR.puts
+      STDERR.puts "Known limitations:"
+      STDERR.puts "  - Encrypted dotenv files are not supported (no TTY for password prompts)"
+      STDERR.puts "  - Job output is suppressed to preserve the JSON-RPC stream"
+      STDERR.puts "  - Secrets in job output are redacted via gitleaks"
+      STDERR.puts
+      STDERR.puts "Mode: #{readonly ? "read-only" : "full"}"
+      STDERR.flush
     end
   end
 end

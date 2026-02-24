@@ -6,7 +6,7 @@ module Gitleaks
 
     def initialize(path : String? = nil)
       resolved = path || Process.find_executable("gitleaks")
-      raise "gitleaks is required but not found in PATH" unless resolved
+      raise "gitleaks not found in PATH" unless resolved
       raise "gitleaks not found at #{resolved}" unless File.exists?(resolved)
 
       @path = resolved

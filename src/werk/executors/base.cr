@@ -1,27 +1,29 @@
 module Werk::Executors
+  ABNORMAL_EXIT = 255
+
   abstract class Base
     def execute(
       ctx : Werk::Context,
-      job : Werk::Config::Job,
+      job_config : Werk::Config::Job,
     ) : ExecutionResult
       buffer_io = IO::Memory.new
       writers = Array(IO).new
       writers << buffer_io
-      writers << Werk::Utils::PrefixIO.new(STDOUT, ctx.name) unless job.silent?
+      writers << Werk::Utils::PrefixIO.new(STDOUT, ctx.name) unless job_config.silent?
       output_io = IO::MultiWriter.new(writers)
 
-      start = Time.local
+      start = Time.instant
       begin
-        exit_code = perform(ctx, job, output_io)
+        exit_code = perform(ctx, job_config, output_io)
       rescue ex
         Log.error { "Job #{ctx.name} failed. Exception: #{ex.message}" }
-        exit_code = 255
+        exit_code = ABNORMAL_EXIT
       end
-      duration = (Time.local - start).total_seconds
+      duration = (Time.instant - start).total_seconds
 
       ExecutionResult.new(
         name: ctx.name,
-        executor: job.executor,
+        executor: job_config.executor,
         variables: ctx.variables,
         directory: ctx.directory,
         stage_id: ctx.stage_id,
@@ -34,7 +36,7 @@ module Werk::Executors
 
     protected abstract def perform(
       ctx : Werk::Context,
-      job : Werk::Config::Job,
+      job_config : Werk::Config::Job,
       output : IO,
     ) : Int32
 

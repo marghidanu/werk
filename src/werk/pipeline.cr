@@ -3,6 +3,7 @@ module Werk
     Log = ::Log.for(self)
 
     getter session_id = UUID.random
+    getter scheduler : Werk::Scheduler
     getter? terminated = false
 
     def initialize(
@@ -10,15 +11,15 @@ module Werk
       scheduler : Werk::Scheduler? = nil,
     )
       @scheduler = scheduler || Werk::ParallelScheduler.new(@config)
-      @executors = {
-        "local"  => Werk::Executors::Local.new.as(Werk::Executors::Base),
-        "docker" => Werk::Executors::Docker.new.as(Werk::Executors::Base),
-      }
+      @active_executors = Array(Werk::Executors::Base).new
     end
 
-    # Get the execution plan (delegates to scheduler)
-    def get_plan(target : String) : Array(Set(String))
-      @scheduler.get_plan(target)
+    private def create_executor(type : String) : Werk::Executors::Base
+      case type
+      when "local"  then Werk::Executors::Local.new
+      when "docker" then Werk::Executors::Docker.new
+      else               raise "Unknown executor: #{type}"
+      end
     end
 
     # Execute the target job and its dependencies according to the execution plan
@@ -29,15 +30,14 @@ module Werk
       yes : Bool = false,
     )
       Log.debug { "Retrieve execution plan for '#{target}'" }
-      plan = get_plan(target)
-
-      raise "Max parallel jobs must be greater than 0!" if @config.max_jobs < 1
+      plan = @scheduler.get_plan(target)
 
       dotenv_vars, vault_passwords = Vault.load_dotenv_files(@config.dotenv)
 
       all_jobs = Array(Werk::Executors::ExecutionResult).new
+      max_jobs = @config.max_jobs < 1 ? System.cpu_count.to_i32 : @config.max_jobs
 
-      Log.debug { "Running pipeline with max_jobs set to #{@config.max_jobs}" }
+      Log.debug { "Running pipeline with max_jobs set to #{max_jobs}" }
       plan.each_with_index do |stage, stage_id|
         break if @terminated
 
@@ -45,15 +45,13 @@ module Werk
         exit_pipeline = false
 
         batch_id = 0
-        stage.each_slice(@config.max_jobs) do |batch|
+        stage.each_slice(max_jobs) do |batch|
           break if @terminated
 
           batch.each_with_index do |name, job_id|
             job = @config.jobs[name]
 
             job_dotenv_vars, vault_passwords = Vault.load_dotenv_files(job.dotenv, vault_passwords)
-
-            executor = @executors[job.executor]? || raise "Unknown executor: #{job.executor}"
 
             ctx = Werk::Context.new(
               session_id: @session_id,
@@ -80,10 +78,17 @@ module Werk
             )
 
             spawn do
-              Log.debug { "> Begin execution '#{name}' (#{stage_id}:#{batch_id}:#{job_id})" }
-              result = executor.execute(ctx, job)
-              results.send(result)
-              Log.debug { "< End execution '#{name}' (#{stage_id}:#{batch_id}:#{job_id})" }
+              executor = create_executor(job.executor)
+              @active_executors << executor
+
+              begin
+                Log.debug { "> Begin execution '#{name}' (#{stage_id}:#{batch_id}:#{job_id})" }
+                result = executor.execute(ctx, job)
+                results.send(result)
+                Log.debug { "< End execution '#{name}' (#{stage_id}:#{batch_id}:#{job_id})" }
+              ensure
+                @active_executors.delete(executor)
+              end
             end
           end
 
@@ -117,7 +122,7 @@ module Werk
       @terminated = true
 
       Log.debug { "Terminating all executors..." }
-      @executors.each_value do |executor|
+      @active_executors.each do |executor|
         executor.terminate
       rescue ex
         Log.debug { "Error terminating executor: #{ex.message}" }

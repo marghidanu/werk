@@ -9,7 +9,7 @@ module Werk::Utils
     @new_line : Bool = true
 
     def initialize(@output : IO, @prefix : String)
-      @color = Werk::Utils::Colors.instance.next_color
+      @color = Werk::Utils::Colors.next_color
     end
 
     def read(slice : Bytes)

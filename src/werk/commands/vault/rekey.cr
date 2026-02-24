@@ -17,11 +17,8 @@ module Werk::Commands
 
       args.each { |file| raise "File not found: #{file}" unless File.exists?(file) }
 
-      STDERR.puts "Enter current password:"
-      old_password = ::Vault.prompt_password
-
-      STDERR.puts "Enter new password:"
-      new_password = ::Vault.prompt_password(confirm: true)
+      old_password = ::Vault.prompt_password(prompt: "Current password: ")
+      new_password = ::Vault.prompt_password(confirm: true, prompt: "New password: ")
 
       args.each do |file|
         content = File.read(file)

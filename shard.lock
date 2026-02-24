@@ -22,7 +22,7 @@ shards:
 
   mcp:
     git: https://github.com/ralsina/mcp.git
-    version: 0.1.1
+    version: 0.1.1+git.commit.7783d01c3252f81fe0ce9d3105bcd4c59ce34fa0
 
   radix:
     git: https://github.com/luislavena/radix.git

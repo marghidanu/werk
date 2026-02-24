@@ -18,6 +18,6 @@ class Werk::Mcp::GetConfigTool < MCP::AbstractTool
       "dotenv"      => config.dotenv.to_a,
     }
 
-    {"content" => [{"type" => "text", "text" => data.to_json}]}
+    data
   end
 end

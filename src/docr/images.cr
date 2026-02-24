@@ -7,9 +7,10 @@ module Docr
 
     # Check if an image exists locally.
     def exists?(name : String) : Bool
-      @client.request("GET", "/images/#{name}/json") do |response|
+      @client.call("GET", "/images/#{name}/json") do |response|
         response.consume_body_io
       end
+
       true
     rescue DockerError
       false
@@ -17,8 +18,15 @@ module Docr
 
     # Pull an image from a registry.
     def pull(repository : String, tag : String = "latest")
-      params = URI::Params{"fromImage" => repository, "tag" => tag}
-      @client.request("POST", "/images/create", params) do |response|
+      url = URI.new(
+        path: "/images/create",
+        query: URI::Params{
+          "fromImage" => repository,
+          "tag"       => tag,
+        }
+      )
+
+      @client.call("POST", url) do |response|
         response.consume_body_io
       end
     end

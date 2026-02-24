@@ -1,8 +1,8 @@
 module Werk::Utils
-  class Colors
+  module Colors
     # Generated from the 6×6×6 color cube (codes 16–231).
     # Filtered for visibility on dark and light terminals:
-    #   brightness (r+g+b) in [4, 11], saturation (max-min) >= 2
+    # brightness (r+g+b) in [4, 11], saturation (max-min) >= 2
     PALETTE = begin
       colors = Array(Colorize::Color256).new
       6.times do |red|
@@ -20,20 +20,14 @@ module Werk::Utils
       colors.shuffle(Random.new(42))
     end
 
-    def initialize
-      @index = 0
-    end
+    @@index = 0
 
-    def next_color : Colorize::Color
-      @index = 0 if @index >= PALETTE.size
-      color = PALETTE[@index]
-      @index += 1
+    def self.next_color : Colorize::Color
+      @@index = 0 if @@index >= PALETTE.size
+      color = PALETTE[@@index]
+      @@index += 1
 
       color
-    end
-
-    def self.instance
-      @@instance ||= new
     end
   end
 end

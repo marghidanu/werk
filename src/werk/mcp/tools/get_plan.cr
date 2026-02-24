@@ -16,13 +16,12 @@ class Werk::Mcp::GetPlanTool < MCP::AbstractTool
     target = params["target"]?.try(&.as_s) || "main"
 
     pipeline = Werk::Pipeline.new(config)
-    plan = pipeline.get_plan(target)
+    plan = pipeline.scheduler.get_plan(target)
 
     stages = plan.map_with_index do |stage, idx|
       {"stage" => idx, "jobs" => stage.to_a}
     end
 
-    data = {"target" => target, "stages" => stages}
-    {"content" => [{"type" => "text", "text" => data.to_json}]}
+    {"target" => target, "stages" => stages}
   end
 end

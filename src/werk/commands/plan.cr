@@ -22,7 +22,7 @@ module Werk::Commands
       target = args.first? || "main"
 
       config = from_stdin ? Werk::Config.load_string(STDIN.gets_to_end) : Werk::Config.load_file(config_file)
-      plan = Werk::Pipeline.new(config).get_plan(target)
+      plan = Werk::Pipeline.new(config).scheduler.get_plan(target)
 
       table = Tallboy.table do
         plan.each_with_index do |stage, index|

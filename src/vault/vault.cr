@@ -179,10 +179,9 @@ module Vault
   end
 
   # Prompt for password on STDERR (hidden input).
-  def self.prompt_password(confirm : Bool = false, label : String? = nil) : String
+  def self.prompt_password(confirm : Bool = false, prompt : String = "Password: ") : String
     raise Error.new("No TTY available for password prompt") unless STDIN.tty?
 
-    prompt = label ? "Enter password for #{label}: " : "Enter encryption password: "
     STDERR.print prompt
     STDERR.flush
     password = STDIN.noecho { |io| io.gets.try(&.chomp) || "" }
@@ -232,7 +231,7 @@ module Vault
 
         # Prompt for a new password if none worked
         unless decrypted
-          plain = prompt_password(label: file)
+          plain = prompt_password(prompt: "Password for #{file}: ")
           file_vars = Vault.decrypt_hash(Dotenv.load(file), plain)
           passwords << ObfuscatedPassword.new(plain)
         end

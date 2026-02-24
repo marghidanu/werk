@@ -11,10 +11,23 @@ module Docr::Utils
     colon_search_start = last_slash ? last_slash + 1 : 0
     colon_pos = image.index(':', colon_search_start)
 
-    if colon_pos
-      {image[0...colon_pos], image[colon_pos + 1..]}
-    else
-      {image, "latest"}
+    colon_pos ? {image[0...colon_pos], image[colon_pos + 1..]} : {image, "latest"}
+  end
+
+  # Decode a Docker multiplexed stream into the given output IO.
+  # Each frame: [stream_type(1), padding(3), size(4 big-endian)] followed by payload.
+  def self.decode_stream(input : IO, output : IO)
+    loop do
+      has_next = input.peek
+      break if has_next.nil? || has_next.empty?
+
+      header = Bytes.new(8)
+      input.read_fully(header)
+      frame_size = IO::ByteFormat::BigEndian.decode(UInt32, header[4, 4])
+
+      IO.copy(input, output, frame_size)
     end
+  rescue IO::EOFError
+    Log.debug { "Reached end of Docker stream" }
   end
 end

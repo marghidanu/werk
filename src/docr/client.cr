@@ -8,31 +8,33 @@ module Docr
     Log = ::Log.for(self)
 
     getter host : String
-    getter api_version : String
 
     SOCKET_PATHS = [
       Path.home / ".docker" / "run" / "docker.sock",
       Path["/var/run/docker.sock"],
     ]
 
-    def initialize(@host = self.class.detect_host, @api_version = "v1.47")
+    def initialize(@host = self.class.detect_host)
       uri = URI.parse(@host)
 
       case uri.scheme
       when "unix"
-        @http_client = HTTP::Client.new(UNIXSocket.new(uri.path))
+        @client = HTTP::Client.new(UNIXSocket.new(uri.path))
       when "tcp", "http", "https"
         host = uri.host || raise ArgumentError.new("Missing host in Docker URI: #{@host}")
         tls = uri.scheme == "https"
-        @http_client = HTTP::Client.new(host, uri.port || (tls ? 2376 : 2375), tls: tls)
+        port = uri.port || (tls ? 2376 : 2375)
+
+        @client = HTTP::Client.new(host, port, tls: tls)
       else
         raise ArgumentError.new("Unsupported Docker host scheme: #{uri.scheme}")
       end
     end
 
-    def self.detect_host : String
+    protected def self.detect_host : String
       if ENV.has_key?("DOCKER_HOST")
         Log.debug { "Using DOCKER_HOST=#{ENV["DOCKER_HOST"]}" }
+
         return ENV["DOCKER_HOST"]
       end
 
@@ -52,16 +54,21 @@ module Docr
       @containers ||= Containers.new(self)
     end
 
-    def request(method : String, path : String, params : URI::Params? = nil, body : String? = nil, &)
-      headers = HTTP::Headers{"Content-Type" => "application/json"} if body
+    def call(
+      method : String,
+      url : String | URI,
+      headers : HTTP::Headers? = nil,
+      body : IO | Slice(UInt8) | String | Nil = nil,
+      &
+    )
+      Log.debug { "#{method} #{url}" }
 
-      uri = URI.new(path: "/#{@api_version}#{path}")
-      uri.query_params = params if params
-
-      @http_client.exec(method, uri.to_s, headers: headers, body: body) do |response|
+      resource = url.is_a?(URI) ? url.to_s : url
+      @client.exec(method, resource, headers, body) do |response|
         unless response.success?
           raise DockerError.new(response.status_code, response.body_io.gets_to_end)
         end
+
         yield response
       end
     end

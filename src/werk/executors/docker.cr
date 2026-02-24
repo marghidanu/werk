@@ -2,25 +2,27 @@ module Werk::Executors
   class Docker < Base
     Log = ::Log.for(self)
 
+    @container_id : String?
+
     def initialize
       @client = Docr::Client.new
-      @running_container_ids = Array(String).new
     end
 
     protected def perform(
       ctx : Werk::Context,
-      job : Werk::Config::Job,
+      job_config : Werk::Config::Job,
       output : IO,
     ) : Int32
-      docker_job = job.as(Werk::Config::DockerJob)
+      job = job_config.as(Werk::Config::DockerJob)
 
       # Ensure the image is available locally
-      if @client.images.exists?(docker_job.image)
-        Log.debug { "Image #{docker_job.image} was found locally" }
+      if @client.images.exists?(job.image)
+        Log.debug { "Image #{job.image} was found locally" }
       else
-        Log.debug { "Fetching image #{docker_job.image}" }
-        repository, tag = Docr::Utils.parse_repository_tag(docker_job.image)
+        output.puts "Pulling image #{job.image}..."
+        repository, tag = Docr::Utils.parse_repository_tag(job.image)
         @client.images.pull(repository, tag)
+        output.puts "Image #{job.image} pulled successfully"
       end
 
       # Create container
@@ -29,16 +31,16 @@ module Werk::Executors
       container = @client.containers.create(
         container_name,
         Docr::ContainerConfig.new(
-          image: docker_job.image,
-          entrypoint: docker_job.entrypoint,
+          image: job.image,
+          entrypoint: job.entrypoint,
           cmd: ["-c", job.script_content],
           working_dir: "/opt/workspace",
           env: ctx.variables,
           host_config: Docr::HostConfig.new(
-            network_mode: docker_job.network_mode,
+            network_mode: job.network_mode,
             binds: [
               "#{Path[ctx.directory].expand}:/opt/workspace",
-            ].concat(docker_job.volumes)
+            ].concat(job.volumes)
           ),
           labels: {
             "com.stuffo.werk.name"       => ctx.name,
@@ -47,7 +49,7 @@ module Werk::Executors
         )
       )
 
-      @running_container_ids << container.id
+      @container_id = container.id
 
       begin
         Log.debug { "Starting container '#{container_name}'" }
@@ -61,23 +63,19 @@ module Werk::Executors
       ensure
         Log.debug { "Removing container '#{container_name}'" }
         @client.containers.delete(container.id, force: true)
-        @running_container_ids.delete(container.id)
+        @container_id = nil
       end
 
       status.status_code
     end
 
     def terminate : Nil
-      return if @running_container_ids.empty?
-
-      @running_container_ids.each do |container_id|
+      if container_id = @container_id
         Log.debug { "Terminating container '#{container_id}'" }
         @client.containers.kill(container_id, "SIGTERM")
-      rescue ex
-        Log.debug { "Failed to kill container #{container_id}: #{ex.message}" }
       end
-
-      @running_container_ids.clear
+    rescue ex
+      Log.debug { "Failed to kill container: #{ex.message}" }
     end
   end
 end

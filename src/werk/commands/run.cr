@@ -5,7 +5,7 @@ module Werk::Commands
     def self.run(args : Array(String))
       config_file = "werk.yml"
       context = "."
-      max_jobs = 0_u32
+      max_jobs = 0
       from_stdin = false
       show_report = false
       env_vars_raw = [] of String
@@ -19,7 +19,7 @@ module Werk::Commands
 
         opt.on("-c CONFIG", "--config=CONFIG", "Configuration file name (default: werk.yml)") { |v| config_file = v }
         opt.on("-x DIR", "--context=DIR", "Working directory (default: .)") { |v| context = v }
-        opt.on("-j JOBS", "--jobs=JOBS", "Max parallel jobs (default: 0 = auto)") { |v| max_jobs = v.to_u32 }
+        opt.on("-j JOBS", "--jobs=JOBS", "Max parallel jobs (default: 0 = auto)") { |v| max_jobs = v.to_i32 }
         opt.on("--stdin", "Read configuration from STDIN") { from_stdin = true }
         opt.on("-r", "--report", "Display execution report") { show_report = true }
         opt.on("-e VAR", "--env=VAR", "Export additional environment variables (repeatable)") { |v| env_vars_raw << v }
