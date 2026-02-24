@@ -26,10 +26,10 @@ class Werk::Mcp::RunJobTool < MCP::AbstractTool
 
   def invoke(params : Hash(String, JSON::Any), env : HTTP::Server::Context? = nil)
     config = Werk::Mcp::Context.config
-    target = params["target"]?.try(&.as_s) || raise "Missing required parameter: target"
+    target = params["target"]?.try(&.as_s) || raise Werk::Error.new("Missing required parameter: target")
     yes = params["yes"]?.try(&.as_bool?) || false
     max_jobs = params["max_jobs"]?.try(&.as_i?) || 0
-    variables = (params["variables"]?.try(&.as_h?) || {} of String => JSON::Any).transform_values(&.as_s)
+    variables = (params["variables"]?.try(&.as_h?) || {} of String => JSON::Any).transform_values(&.raw.to_s)
     config.max_jobs = max_jobs if max_jobs > 0
 
     Werk::Utils::PrefixIO.enabled = false

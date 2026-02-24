@@ -14,9 +14,9 @@ class Werk::Mcp::GetJobTool < MCP::AbstractTool
 
   def invoke(params : Hash(String, JSON::Any), env : HTTP::Server::Context? = nil)
     config = Werk::Mcp::Context.config
-    name = params["name"]?.try(&.as_s) || raise "Missing required parameter: name"
+    name = params["name"]?.try(&.as_s) || raise Werk::Error.new("Missing required parameter: name")
 
-    job = config.jobs[name]? || raise "Job '#{name}' not found"
+    job = config.jobs[name]? || raise Werk::Error.new("Job '#{name}' not found")
 
     data = {
       "name"         => name,

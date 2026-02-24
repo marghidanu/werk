@@ -31,9 +31,6 @@ module Docr
       @client.call("POST", url) do |response|
         response.consume_body_io
       end
-    rescue ex : DockerError
-      # Docker returns 304 if the container is already running — we ignore that.
-      raise ex unless ex.status_code == 304
     end
 
     # Stream container logs, writing decoded output to the given IO.

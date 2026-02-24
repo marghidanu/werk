@@ -18,9 +18,13 @@ module Werk::Utils
       end
 
       # Reorder with maximum spacing: stride by golden-ratio step
-      # so consecutive picks are perceptually far apart.
+      # (coprime with n) so consecutive picks are perceptually far apart.
       n = colors.size
       step = (n * 0.618).to_i.clamp(1, n - 1)
+      while n.gcd(step) != 1
+        step += 1
+      end
+
       spaced = Array(Colorize::Color256).new(n)
       idx = 0
       n.times do

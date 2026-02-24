@@ -15,7 +15,7 @@ module Werk::Executors
       start = Time.instant
       begin
         exit_code = perform(ctx, job_config, output_io)
-      rescue ex
+      rescue ex : Exception
         Log.error { "Job #{ctx.name} failed. Exception: #{ex.message}" }
         exit_code = ABNORMAL_EXIT
       end

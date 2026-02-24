@@ -23,6 +23,11 @@ module Werk::Commands
       end
     end
 
+    protected def self.validate_files!(args : Array(String))
+      raise Werk::Error.new("No files specified") if args.empty?
+      args.each { |file| raise Werk::Error.new("File not found: #{file}") unless File.exists?(file) }
+    end
+
     private def self.print_help
       puts "Usage: werk vault <command> [options]"
       puts

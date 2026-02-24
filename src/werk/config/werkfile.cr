@@ -26,18 +26,18 @@ module Werk
 
     # Load configuration from file
     def self.load_file(path : String)
-      raise "Configuration file missing!" unless File.exists?(path)
+      raise Werk::Error.new("Configuration file missing!") unless File.exists?(path)
 
       content = File.read(path)
       self.load_string(content)
     end
 
     def self.load_string(content : String)
-      raise "Empty configuration!" if content.empty?
+      raise Werk::Error.new("Empty configuration!") if content.empty?
 
       self.from_yaml(content)
     rescue ex : YAML::ParseException
-      raise "Parse error at line #{ex.line_number}, column #{ex.column_number}"
+      raise Werk::Error.new("Parse error at line #{ex.line_number}, column #{ex.column_number}")
     end
   end
 end

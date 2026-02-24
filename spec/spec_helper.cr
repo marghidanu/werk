@@ -12,6 +12,7 @@ require "../src/docr"
 require "../src/gitleaks"
 require "../src/vault"
 
+require "../src/werk/error"
 require "../src/werk/config/*"
 require "../src/werk/config/jobs/*"
 require "../src/werk/utils/*"

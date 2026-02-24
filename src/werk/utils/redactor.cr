@@ -8,7 +8,7 @@ module Werk::Utils
 
     begin
       @@scanner = Gitleaks::Scanner.new
-    rescue ex
+    rescue ex : Gitleaks::Error
       Log.warn { "Secret redaction disabled: #{ex.message}" }
       @@scanner = nil
     end

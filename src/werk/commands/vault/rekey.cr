@@ -13,9 +13,7 @@ module Werk::Commands
       end
 
       parser.parse(args)
-      raise "Usage: werk vault rekey <file> [file...]" if args.empty?
-
-      args.each { |file| raise "File not found: #{file}" unless File.exists?(file) }
+      Vault.validate_files!(args)
 
       old_password = ::Vault.prompt_password(prompt: "Current password: ")
       new_password = ::Vault.prompt_password(confirm: true, prompt: "New password: ")

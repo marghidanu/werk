@@ -1,4 +1,6 @@
 module Craph
+  class CycleError < Exception; end
+
   # Directed Acyclic Graph, extends Graph with cycle detection and topological sorting.
   class DAG(T) < Graph(T)
     # Check if the graph has no cycles using DFS
@@ -40,7 +42,7 @@ module Craph
         end
       end
 
-      raise "Graph has a cycle!" unless ba.empty?
+      raise CycleError.new("Graph has a cycle!") unless ba.empty?
       result
     end
 

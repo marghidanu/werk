@@ -40,10 +40,17 @@ describe Docr::Utils do
 end
 
 describe Docr::DockerError do
-  it "should include status code and body in message" do
-    error = Docr::DockerError.new(404, "no such container")
+  it "should include status code and message" do
+    error = Docr::DockerError.new("no such container", 404)
 
     error.status_code.should eq 404
-    error.message.should eq "Docker API error (404): no such container"
+    error.message.should eq "no such container"
+  end
+
+  it "should default status code to nil" do
+    error = Docr::DockerError.new("something went wrong")
+
+    error.status_code.should be_nil
+    error.message.should eq "something went wrong"
   end
 end

@@ -212,25 +212,24 @@ module Vault
     vars = Hash(String, String).new
 
     files.each do |file|
+      raise Error.new("Dotenv file not found: #{file}") unless File.exists?(file)
       file_vars = Dotenv.load(file)
 
       if has_encrypted?(file_vars)
         STDERR.puts "Decrypting #{file}..."
-        decrypted = false
 
         # Try cached passwords first
-        passwords.each do |cached|
+        cached_ok = passwords.any? do |cached|
           cached.reveal do |plain|
             file_vars = Vault.decrypt_hash(Dotenv.load(file), plain)
           end
-          decrypted = true
-          break
+          true
         rescue Vault::Error
-          next
+          false
         end
 
         # Prompt for a new password if none worked
-        unless decrypted
+        unless cached_ok
           plain = prompt_password(prompt: "Password for #{file}: ")
           file_vars = Vault.decrypt_hash(Dotenv.load(file), plain)
           passwords << ObfuscatedPassword.new(plain)

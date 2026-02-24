@@ -31,7 +31,7 @@ module Werk::Executors
 
     def terminate : Nil
       @process.try &.signal(Signal::TERM)
-    rescue ex
+    rescue ex : RuntimeError
       Log.debug { "Failed to signal process: #{ex.message}" }
     end
   end

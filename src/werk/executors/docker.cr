@@ -72,7 +72,7 @@ module Werk::Executors
         Log.debug { "Terminating container '#{container_id}'" }
         @client.containers.kill(container_id, "SIGTERM")
       end
-    rescue ex
+    rescue ex : Docr::DockerError
       Log.debug { "Failed to kill container: #{ex.message}" }
     end
 

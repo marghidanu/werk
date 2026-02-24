@@ -1,4 +1,6 @@
 module Gitleaks
+  class Error < Exception; end
+
   class Scanner
     Log = ::Log.for(self)
 
@@ -6,8 +8,8 @@ module Gitleaks
 
     def initialize(path : String? = nil)
       resolved = path || Process.find_executable("gitleaks")
-      raise "gitleaks not found in PATH" unless resolved
-      raise "gitleaks not found at #{resolved}" unless File.exists?(resolved)
+      raise Error.new("gitleaks not found in PATH") unless resolved
+      raise Error.new("gitleaks not found at #{resolved}") unless File.exists?(resolved)
 
       @path = resolved
     end

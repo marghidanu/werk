@@ -18,7 +18,7 @@ module Werk
       case type
       when "local"  then Werk::Executors::Local.new
       when "docker" then Werk::Executors::Docker.new
-      else               raise "Unknown executor: #{type}"
+      else               raise Werk::Error.new("Unknown executor: #{type}")
       end
     end
 
@@ -124,7 +124,7 @@ module Werk
       Log.debug { "Terminating all executors..." }
       @active_executors.each do |executor|
         executor.terminate
-      rescue ex
+      rescue ex : Exception
         Log.debug { "Error terminating executor: #{ex.message}" }
       end
     end
@@ -149,7 +149,7 @@ module Werk
     end
 
     def find_job(name : String) : Werk::Executors::ExecutionResult
-      find_job?(name) || raise "Job '#{name}' not found in pipeline result"
+      find_job?(name) || raise Werk::Error.new("Job '#{name}' not found in pipeline result")
     end
 
     def has_job?(name : String) : Bool

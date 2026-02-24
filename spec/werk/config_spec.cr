@@ -2,13 +2,13 @@ require "../spec_helper"
 
 describe "Config" do
   it "empty" do
-    expect_raises(Exception, "Empty configuration!") do
+    expect_raises(Werk::Error, "Empty configuration!") do
       Werk::Config.load_string("")
     end
   end
 
   it "invalid" do
-    expect_raises(Exception, /^Parse error/) do
+    expect_raises(Werk::Error, /^Parse error/) do
       Werk::Config.load_string(%(
         version: 1
         jobs:
@@ -74,7 +74,7 @@ describe "Config" do
   end
 
   it "should fail for non existing file" do
-    expect_raises(Exception, "Configuration file missing!") do
+    expect_raises(Werk::Error, "Configuration file missing!") do
       Werk::Config.load_file("werk.yaml")
     end
   end

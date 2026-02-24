@@ -48,7 +48,7 @@ describe Craph::DAG do
     dag.add_edge("a", "b")
     dag.add_edge("b", "a")
 
-    expect_raises(Exception, "Graph has a cycle!") do
+    expect_raises(Craph::CycleError, "Graph has a cycle!") do
       dag.topological_sort
     end
   end

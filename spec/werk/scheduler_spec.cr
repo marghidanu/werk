@@ -84,7 +84,7 @@ describe Werk::ParallelScheduler do
 
     scheduler = Werk::ParallelScheduler.new(config)
 
-    expect_raises(Exception, "Job 'missing' is not defined!") do
+    expect_raises(Werk::Error, "Job 'missing' is not defined!") do
       scheduler.get_plan("main")
     end
   end

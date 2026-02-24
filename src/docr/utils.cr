@@ -1,4 +1,6 @@
 module Docr::Utils
+  Log = ::Log.for(self)
+
   # Parse a Docker image reference into repository and tag.
   # Examples:
   #   "alpine"         => {"alpine", "latest"}

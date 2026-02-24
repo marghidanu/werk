@@ -6,7 +6,7 @@ module Werk
       visited = Set(String).new
 
       while name = stack.pop?
-        raise "Job '#{name}' is not defined!" unless @config.jobs[name]?
+        raise Werk::Error.new("Job '#{name}' is not defined!") unless @config.jobs[name]?
         next if visited.includes?(name)
         visited << name
 
