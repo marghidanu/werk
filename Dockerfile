@@ -15,6 +15,7 @@ RUN shards install --production --ignore-crystal-version \
 
 FROM alpine:3.21
 
+SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 # hadolint ignore=DL3018,DL3047
 RUN apk add --no-cache curl \
     && GITLEAKS_VERSION=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | grep -o '"tag_name": "v[^"]*"' | cut -d'"' -f4 | sed 's/v//') \
