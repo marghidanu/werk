@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Hadolint
-        uses: brpaz/hadolint-action@v1.1.0
+        uses: hadolint/hadolint-action@v3.1.0
 
       - name: Install Crystal
         uses: oprypin/install-crystal@v1
