@@ -5,6 +5,7 @@ describe Docr::Containers do
     pending!("Docker not available") unless Docr::Client.available?
 
     client = Docr::Client.new
+    client.images.pull("alpine", "latest") unless client.images.exists?("alpine:latest")
     client.containers.delete("docr-test-logs", force: true) rescue nil
 
     container = client.containers.create(
@@ -35,6 +36,7 @@ describe Docr::Containers do
     pending!("Docker not available") unless Docr::Client.available?
 
     client = Docr::Client.new
+    client.images.pull("alpine", "latest") unless client.images.exists?("alpine:latest")
     client.containers.delete("docr-test-exit", force: true) rescue nil
 
     container = client.containers.create(
