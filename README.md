@@ -25,7 +25,7 @@ brew install werk
 Create a `werk.yml`:
 
 ```yaml
-version: "1.0"
+version: "1"
 
 jobs:
   main:
