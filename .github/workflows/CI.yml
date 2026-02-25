@@ -54,7 +54,7 @@ jobs:
 
       - name: Additional macOS dependencies
         if: contains(matrix.os, 'macos')
-        run: brew install openssl gitleaks
+        run: brew install gitleaks
 
       - name: Checkout code
         uses: actions/checkout@v4
