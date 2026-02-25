@@ -29,6 +29,8 @@ jobs:
 
       - name: Ameba
         uses: crystal-ameba/github-action@v0.12.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
     runs-on: ${{ matrix.os }}
