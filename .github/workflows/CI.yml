@@ -28,7 +28,7 @@ jobs:
           crystal: 1.19.1
 
       - name: Ameba
-        uses: crystal-ameba/github-action@v0.11.0
+        uses: crystal-ameba/github-action@v0.12.0
 
   test:
     runs-on: ${{ matrix.os }}
