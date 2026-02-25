@@ -5,6 +5,9 @@ on:
     types:
       - published
 
+env:
+  APP_VERSION: ${{ github.event.release.tag_name }}
+
 jobs:
   build:
     runs-on: "${{ matrix.os }}"
@@ -26,17 +29,13 @@ jobs:
         if: contains(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update
-          sudo apt-get install -y libyaml-dev yq
-
-      - name: Additional macOS dependencies
-        if: contains(matrix.os, 'macos')
-        run: brew install openssl yq
+          sudo apt-get install -y libyaml-dev
 
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Update shard version
-        run: yq eval -i ".version = \"${{ github.event.release.tag_name }}\"" shard.yml
+        run: yq eval -i ".version = \"${APP_VERSION}\"" shard.yml
 
       - name: Install dependencies
         run: shards install --production --ignore-crystal-version
@@ -44,14 +43,10 @@ jobs:
       - name: Build
         if: contains(matrix.os, 'macos')
         run: shards build --release --no-debug
-        env:
-          APP_VERSION: ${{ github.event.release.tag_name }}
 
       - name: Build static
         if: contains(matrix.os, 'ubuntu')
         run: shards build --release --no-debug --static
-        env:
-          APP_VERSION: ${{ github.event.release.tag_name }}
 
       - name: Upload application
         id: upload
@@ -82,7 +77,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Update shard version
-        run: yq eval -i ".version = \"${{ github.event.release.tag_name }}\"" shard.yml
+        run: yq eval -i ".version = \"${APP_VERSION}\"" shard.yml
 
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
@@ -104,7 +99,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
-            APP_VERSION=${{ github.event.release.tag_name }}
-          tags: ghcr.io/${{ github.repository }}:${{ github.event.release.tag_name }},ghcr.io/${{ github.repository }}:latest
+            APP_VERSION=${{ env.APP_VERSION }}
+          tags: ghcr.io/${{ github.repository }}:${{ env.APP_VERSION }},ghcr.io/${{ github.repository }}:latest
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:latest
           cache-to: type=inline

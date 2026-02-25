@@ -11,6 +11,9 @@ on:
   schedule:
     - cron: 0 23 * * *
 
+env:
+  APP_VERSION: 0.0.${{ github.run_number }}
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -59,6 +62,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Simulate release version
+        run: yq eval -i ".version = \"${APP_VERSION}\"" shard.yml
+
       - name: Install dependencies
         run: shards install --ignore-crystal-version
 
@@ -72,6 +78,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Simulate release version
+        run: yq eval -i ".version = \"${APP_VERSION}\"" shard.yml
+
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -84,6 +93,8 @@ jobs:
           context: .
           push: false
           platforms: linux/amd64,linux/arm64
-          build-args: RELEASE=
+          build-args: |
+            RELEASE=
+            APP_VERSION=${{ env.APP_VERSION }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:latest
           cache-to: type=inline
