@@ -1,3 +1,4 @@
+.claude/
 .vscode/
 
 /docs/
@@ -5,5 +6,6 @@
 /bin/
 /.shards/
 *.dwarf
+
 .env*
 .mcp.json
