@@ -94,7 +94,7 @@ jobs:
           push: false
           platforms: linux/amd64,linux/arm64
           build-args: |
-            RELEASE=""
+            RELEASE=
             APP_VERSION=${{ env.APP_VERSION }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:latest
           cache-to: type=inline
