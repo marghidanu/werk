@@ -27,11 +27,8 @@ jobs:
         with:
           crystal: 1.19.1
 
-      - name: Install dependencies
-        run: shards install --ignore-crystal-version
-
       - name: Ameba
-        run: crystal run bin/ameba.cr
+        uses: crystal-ameba/github-action@v0.11.0
 
   test:
     runs-on: ${{ matrix.os }}
