@@ -19,7 +19,7 @@ jobs:
   lint:
     executor: local
     commands:
-      - amebda
+      - ameba
 
   test:
     executor: local

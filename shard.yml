@@ -1,21 +1,24 @@
 name: werk
 version: 0.0.0
+description: A simple task runner with parallel execution and Docker support
+repository: https://github.com/marghidanu/werk
 authors:
   - tudor@marghidanu.com
+
 targets:
   werk:
     main: src/werk.cr
+
 dependencies:
-  admiral:
-    github: jwaldrip/admiral.cr
-    version: 1.11.5
   tallboy:
     github: epoch/tallboy
     version: 0.9.3
-  docr:
-    github: marghidanu/docr
-    version: 0.1.4
   dotenv:
     github: gdotdesign/cr-dotenv
-crystal: 1.15.0
+  mcp:
+    github: ralsina/mcp
+    branch: main
+
+
+crystal: ">= 1.19.0"
 license: MIT

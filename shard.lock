@@ -1,20 +1,28 @@
 version: 2.0
 shards:
-  admiral:
-    git: https://github.com/jwaldrip/admiral.cr.git
-    version: 1.11.5
-
-  crystar:
-    git: https://github.com/naqvis/crystar.git
-    version: 0.4.0
-
-  docr:
-    git: https://github.com/marghidanu/docr.git
-    version: 0.1.4
+  backtracer:
+    git: https://github.com/sija/backtracer.cr.git
+    version: 1.2.4
 
   dotenv:
     git: https://github.com/gdotdesign/cr-dotenv.git
     version: 1.0.0
+
+  exception_page:
+    git: https://github.com/crystal-loot/exception_page.git
+    version: 0.5.0
+
+  kemal:
+    git: https://github.com/kemalcr/kemal.git
+    version: 1.9.0
+
+  mcp:
+    git: https://github.com/ralsina/mcp.git
+    version: 0.1.1+git.commit.7783d01c3252f81fe0ce9d3105bcd4c59ce34fa0
+
+  radix:
+    git: https://github.com/luislavena/radix.git
+    version: 0.4.1
 
   tallboy:
     git: https://github.com/epoch/tallboy.git

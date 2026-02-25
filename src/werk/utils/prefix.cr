@@ -1,39 +1,55 @@
-require "colorize"
-
-require "./colors"
-
 module Werk::Utils
   class PrefixIO < IO
-    @color : Colorize::Color
+    ANSI_RESET = "\033[0m"
 
-    # Creates a new instance that will use output to write to
+    # Strip cursor movement/positioning, but keep color (SGR) codes
+    ANSI_STRIP = /\x1B\[[0-9;]*[A-HJ-K]/
+
+    class_property? enabled : Bool = true
+    @@mutex = Mutex.new
+
+    @color : Colorize::Color
+    @buffer : String = ""
+
     def initialize(@output : IO, @prefix : String)
-      @color = Werk::Utils::Colors.instance.next_color
-      @new_line = true
+      @color = Werk::Utils::Colors.next_color
     end
 
-    # Does nothing, reading is disabled for this IO
     def read(slice : Bytes)
       raise IO::Error.new("Can't read from this IO!")
     end
 
-    # Adds a defined stamp for each incoming line
     def write(slice : Bytes) : Nil
       check_open
 
+      return unless self.class.enabled?
       return if slice.empty?
 
       data = String.new(slice)
-        .gsub(/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]/, "")
+        .gsub(ANSI_STRIP, "")
         .gsub("\r", "\n")
 
-      data.each_char do |char|
-        @output.print("[#{@prefix.colorize(@color)}] ") if @new_line
-        @output.print(char)
-        @new_line = (char == '\n')
+      data.each_line(chomp: false) do |line|
+        @buffer += line
+        if @buffer.ends_with?('\n')
+          flush_line
+        end
       end
     rescue ex : IO::Error
       nil
+    end
+
+    # Flush any remaining partial line (e.g. when the process exits)
+    def close : Nil
+      flush_line unless @buffer.empty?
+      super
+    end
+
+    private def flush_line
+      @@mutex.synchronize do
+        @output.print("#{ANSI_RESET}[#{@prefix.colorize(@color)}] #{@buffer}")
+      end
+      @buffer = ""
     end
   end
 end

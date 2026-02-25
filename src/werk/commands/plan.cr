@@ -1,32 +1,28 @@
-require "admiral"
-require "tallboy"
-require "colorize"
-
-require "../config"
-require "../scheduler"
-
 module Werk::Commands
-  class Plan < Admiral::Command
-    define_help description: "List jobs information"
+  module Plan
+    def self.run(args : Array(String))
+      config_file = "werk.yml"
+      from_stdin = false
 
-    define_argument target : String,
-      description: "Job name",
-      default: "main"
+      parser = OptionParser.new do |opt|
+        opt.banner = "Usage: werk plan [target] [options]"
+        opt.separator ""
+        opt.separator "Display execution plan"
+        opt.separator ""
 
-    define_flag config : String,
-      description: "Configuration file name",
-      default: "werk.yml",
-      short: "c"
+        opt.on("-c CONFIG", "--config=CONFIG", "Configuration file name (default: werk.yml)") { |v| config_file = v }
+        opt.on("--stdin", "Read configuration from STDIN") { from_stdin = true }
+        opt.on("-h", "--help", "Show this help") { puts opt; exit 0 }
 
-    define_flag stdin : Bool,
-      description: "Read configuration from STDIN",
-      long: "stdin"
+        opt.invalid_option { |flag| STDERR.puts "Error: Unknown option '#{flag}'"; STDERR.puts opt; exit 1 }
+        opt.missing_option { |flag| STDERR.puts "Error: Missing value for '#{flag}'"; STDERR.puts opt; exit 1 }
+      end
 
-    def run
-      config = flags.stdin ? Werk::Config.load_string(STDIN.gets_to_end) : Werk::Config.load_file(flags.config)
+      parser.parse(args)
+      target = args.first? || "main"
 
-      target = arguments.target || "main"
-      plan = Werk::Scheduler.new(config).get_plan(target)
+      config = from_stdin ? Werk::Config.load_string(STDIN.gets_to_end) : Werk::Config.load_file(config_file)
+      plan = Werk::Pipeline.new(config).scheduler.get_plan(target)
 
       table = Tallboy.table do
         plan.each_with_index do |stage, index|

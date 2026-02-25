@@ -1,19 +1,32 @@
 require "log"
+require "yaml"
+require "json"
+require "uuid"
+require "dotenv"
+require "option_parser"
+require "tallboy"
+require "colorize"
+require "digest/md5"
 
+require "../src/craph"
+require "../src/docr"
+require "../src/gitleaks"
+require "../src/vault"
+
+require "./werk/error"
+require "./werk/config/*"
+require "./werk/config/jobs/*"
+require "./werk/utils/*"
+require "./werk/context"
+require "./werk/schedulers/*"
+require "./werk/executors/*"
+require "./werk/pipeline"
+require "mcp"
+require "./werk/mcp/state"
+require "./werk/mcp/tools/*"
+require "./werk/commands/*"
 require "./werk/application"
 
 module Werk
-  VERSION = "0.0.0"
-
-  begin
-    Log.setup_from_env(
-      default_sources: "werk.*",
-      log_level_env: "WERK_LOG_LEVEL",
-    )
-
-    Werk::Application.run
-  rescue ex : Exception
-    puts "Error: #{ex.message}"
-    exit(1)
-  end
+  VERSION = {{ env("APP_VERSION") || "0.0.0" }}
 end

@@ -1,0 +1,5 @@
+require "./docr/client"
+require "./docr/containers"
+require "./docr/images"
+require "./docr/types/*"
+require "./docr/utils"

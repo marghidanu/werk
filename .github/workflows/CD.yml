@@ -10,36 +10,33 @@ jobs:
     runs-on: "${{ matrix.os }}"
     strategy:
       matrix:
-        os: ["macos-latest", "ubuntu-latest"]
+        include:
+          - os: macos-latest
+            asset: werk-darwin-arm64
+          - os: ubuntu-latest
+            asset: werk-linux-amd64
 
     steps:
       - name: Install Crystal
         uses: oprypin/install-crystal@v1
         with:
-          crystal: 1.18.2
+          crystal: 1.19.1
 
       - name: Additional Linux dependencies
         if: contains(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update
-          sudo apt-get install -y libyaml-dev
+          sudo apt-get install -y libyaml-dev yq
 
       - name: Additional macOS dependencies
         if: contains(matrix.os, 'macos')
-        run: |
-          brew install openssl yq
-
-      - name: Get runner environment
-        id: runner
-        uses: msansoni/runner-environment-action@v1
+        run: brew install openssl yq
 
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Update version
-        run: |
-          yq eval -i ".version = \"${{ github.event.release.tag_name }}\"" shard.yml
-          perl -pi -e 's/VERSION = ".*"/VERSION = "${{ github.event.release.tag_name }}"/g' src/werk.cr
+      - name: Update shard version
+        run: yq eval -i ".version = \"${{ github.event.release.tag_name }}\"" shard.yml
 
       - name: Install dependencies
         run: shards install --production --ignore-crystal-version
@@ -47,10 +44,14 @@ jobs:
       - name: Build
         if: contains(matrix.os, 'macos')
         run: shards build --release --no-debug
+        env:
+          APP_VERSION: ${{ github.event.release.tag_name }}
 
       - name: Build static
         if: contains(matrix.os, 'ubuntu')
         run: shards build --release --no-debug --static
+        env:
+          APP_VERSION: ${{ github.event.release.tag_name }}
 
       - name: Upload application
         id: upload
@@ -58,7 +59,7 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ./bin/werk
-          asset_name: werk-${{ steps.runner.outputs.platform }}-${{steps.runner.outputs.arch}}
+          asset_name: ${{ matrix.asset }}
           asset_content_type: application/octet-stream
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -80,29 +81,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Update version
-        run: |
-          yq eval -i ".version = \"${{ github.event.release.tag_name }}\"" shard.yml
-          perl -pi -e 's/VERSION = ".*"/VERSION = "${{ github.event.release.tag_name }}"/g' src/werk.cr
+      - name: Update shard version
+        run: yq eval -i ".version = \"${{ github.event.release.tag_name }}\"" shard.yml
 
       - name: Setup QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
 
       - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
+      - name: Login to GHCR
+        uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: boord/werk:${{ github.event.release.tag_name }},boord/werk:latest
-          cache-from: type=registry,ref=boord/werk:latest
+          build-args: |
+            APP_VERSION=${{ github.event.release.tag_name }}
+          tags: ghcr.io/${{ github.repository }}:${{ github.event.release.tag_name }},ghcr.io/${{ github.repository }}:latest
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:latest
           cache-to: type=inline

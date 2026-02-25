@@ -1,97 +1,79 @@
-# werk
+# Werk
 
-Dead simple task runner. Now with support for Docker.
-
-## Build status
+Local CI pipeline runner with parallel execution and Docker support.
 
 [![CI Status](https://github.com/marghidanu/werk/workflows/CI/badge.svg)](https://github.com/marghidanu/werk/actions)
 
-## Installation
-
-You can follow the installation guide available [here](https://github.com/marghidanu/werk/wiki/Installation).
-
-## Documentation
-
-For more information on how to get started, please check the [wiki](https://github.com/marghidanu/werk/wiki/Guide).
-
 ## Features
 
-- [x] Automatic determination of the execution plan
-- [x] Parallel jobs execution
-- [x] Shell executor
-- [x] Docker executor
-- [x] Real-time output support for parallel jobs
-- [x] Simple configuration DSL based on YAML
-- [x] Execution report
-- [ ] Web UI for browsing the execution reports (?)
-- [x] Enable logging
+- Declarative pipelines in a single YAML file
+- Automatic parallelism based on the dependency graph
+- Local and Docker executors
+- Built-in vault for encrypting secrets in dotenv files
+- Execution reports with per-job timing and status
+- MCP server for AI assistant integration (experimental)
 
-## Example
+## Quick start
 
-Create a **werk.yml** with the following content:
+Install via Homebrew:
+
+```
+brew tap marghidanu/werk
+brew install werk
+```
+
+Create a `werk.yml`:
 
 ```yaml
 version: "1"
 
-description: "Manage Werk with Werk"
-
 jobs:
   main:
-    description: "Build application"
     executor: local
-    commands:
-      - shards build
     needs:
       - lint
       - test
+    commands:
+      - echo "Build complete!"
 
   lint:
-    description: "Lint code"
-    executor: docker
-    image: veelenga/ameba
+    executor: local
     commands:
-      - ameba
-    can_fail: true
+      - echo "Linting..."
 
   test:
-    description: "Test code"
     executor: local
     commands:
-      - crystal spec
-
-  docs:
-    description: Generate API documentation
-    executor: local
-    commands:
-      - crystal docs
-      - open docs/index.html
-    silent: true
+      - echo "Running tests..."
 ```
 
-after that, you can run
+Run it:
 
 ```
 werk run
 ```
 
- You can also start individual jobs by specifying a target like this:
+Inspect the execution plan:
 
 ```
-werk run lint
+werk plan
 ```
 
-Here's another example; in this case, I'm building Werk using itself.
+Get a detailed report:
 
-[![asciicast](https://asciinema.org/a/ssMl6y1R2RcaDgfTHj5uJejzH.svg)](https://asciinema.org/a/ssMl6y1R2RcaDgfTHj5uJejzH)
+```
+werk run -r
+```
 
-## Contributing
+## Documentation
 
-1. Fork it (<https://github.com/marghidanu/werk/fork>)
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
+- [Installation](https://github.com/marghidanu/werk/wiki/Installation)
+- [Getting started](https://github.com/marghidanu/werk/wiki/Guide)
+- [Philosophy](https://github.com/marghidanu/werk/wiki/Philosophy)
+- [Internals](https://github.com/marghidanu/werk/wiki/Internals)
+- [MCP Server](https://github.com/marghidanu/werk/wiki/MCP)
+- [FAQ](https://github.com/marghidanu/werk/wiki/FAQ)
 
-## Contributors
+## License
 
-- [Tudor Marghidanu](https://github.com/marghidanu) - creator and maintainer
+MIT
