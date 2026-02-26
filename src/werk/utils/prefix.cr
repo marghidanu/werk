@@ -45,10 +45,13 @@ module Werk::Utils
       super
     end
 
+    # Silently discard on broken pipe (e.g. piped output closed early).
     private def flush_line
       @@mutex.synchronize do
         @output.print("#{ANSI_RESET}[#{@prefix.colorize(@color)}] #{@buffer}")
       end
+      @buffer = ""
+    rescue IO::Error
       @buffer = ""
     end
   end
