@@ -40,6 +40,10 @@ module Werk
     end
   end
 
+  # Ignore SIGPIPE so broken pipes (e.g. `werk run | head`) raise IO::Error
+  # instead of crashing Crystal's internal process-output fiber.
+  Signal::PIPE.ignore
+
   begin
     Log.setup_from_env(
       default_sources: "werk.*,docr.*",

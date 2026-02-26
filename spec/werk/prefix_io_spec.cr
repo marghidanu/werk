@@ -98,6 +98,19 @@ describe Werk::Utils::PrefixIO do
     output.to_s.scan(/\[test\]/).size.should eq(3)
   end
 
+  it "should handle broken pipe gracefully" do
+    # Use a closed IO to simulate a broken pipe (raises IO::Error on write)
+    broken_output = IO::Memory.new
+    broken_output.close
+
+    io = Werk::Utils::PrefixIO.new(broken_output, "test")
+    Werk::Utils::PrefixIO.enabled = true
+
+    # Writing to a closed IO should not raise
+    io.print("this will break\n")
+    io.close
+  end
+
   it "should raise on read" do
     output = IO::Memory.new
     io = Werk::Utils::PrefixIO.new(output, "test")
