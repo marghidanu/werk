@@ -69,7 +69,14 @@ jobs:
         run: shards install --ignore-crystal-version
 
       - name: Run tests
-        run: crystal spec
+        run: crystal spec --junit_output test-reports
+
+      - name: Publish test report
+        uses: mikepenz/action-junit-report@v6
+        if: success() || failure()
+        with:
+          report_paths: test-reports/**/*.xml
+          check_name: Tests (${{ matrix.os }})
 
   build:
     runs-on: ubuntu-latest
