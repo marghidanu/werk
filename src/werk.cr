@@ -7,6 +7,7 @@ require "option_parser"
 require "tallboy"
 require "colorize"
 require "digest/md5"
+require "wait_group"
 
 require "../src/craph"
 require "../src/docr"
