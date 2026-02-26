@@ -6,7 +6,6 @@ module Werk::Utils
     ANSI_STRIP = /\x1B\[[0-9;]*[A-HJ-K]/
 
     class_property? enabled : Bool = true
-    @@mutex = Mutex.new
 
     @color : Colorize::Color
     @buffer : String = ""
@@ -47,9 +46,13 @@ module Werk::Utils
 
     # Silently discard on broken pipe (e.g. piped output closed early).
     private def flush_line
-      @@mutex.synchronize do
-        @output.print("#{ANSI_RESET}[#{@prefix.colorize(@color)}] #{@buffer}")
-      end
+      return @buffer = "" if @output.closed?
+
+      # Use `write` instead of `print` — Crystal has a bug where exceptions
+      # raised through the IO#print → String#to_s → IO#write_string chain
+      # bypass rescue handlers entirely.
+      msg = "#{ANSI_RESET}[#{@prefix.colorize(@color)}] #{@buffer}"
+      @output.write(msg.to_slice)
       @buffer = ""
     rescue IO::Error
       @buffer = ""
