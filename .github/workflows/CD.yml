@@ -9,29 +9,14 @@ env:
   APP_VERSION: ${{ github.event.release.tag_name }}
 
 jobs:
-  build:
-    runs-on: "${{ matrix.os }}"
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
-            asset: werk-darwin-arm64
-          - os: ubuntu-latest
-            asset: werk-linux-amd64
-          - os: ubuntu-24.04-arm
-            asset: werk-linux-arm64
+  build-macos:
+    runs-on: macos-latest
 
     steps:
       - name: Install Crystal
         uses: oprypin/install-crystal@v1
         with:
           crystal: 1.19.1
-
-      - name: Additional Linux dependencies
-        if: contains(matrix.os, 'ubuntu')
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libyaml-dev
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -43,15 +28,56 @@ jobs:
         run: shards install --production --ignore-crystal-version
 
       - name: Build
-        if: contains(matrix.os, 'macos')
         run: shards build --release --no-debug
 
+      - name: Upload application
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./bin/werk
+          asset_name: werk-darwin-arm64
+          asset_content_type: application/octet-stream
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Homebrew formula update
+        uses: mislav/bump-homebrew-formula-action@v1.12
+        env:
+          COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
+        with:
+          formula-name: werk
+          homebrew-tap: marghidanu/homebrew-werk
+          base-branch: master
+
+  build-linux:
+    runs-on: "${{ matrix.os }}"
+    container:
+      image: 84codes/crystal:1.19.1-alpine
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            asset: werk-linux-amd64
+          - os: ubuntu-24.04-arm
+            asset: werk-linux-arm64
+
+    steps:
+      - name: Install build dependencies
+        run: apk add --no-cache yaml-static zlib-static
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update shard version
+        run: sed -i "s/^version: .*/version: ${APP_VERSION}/" shard.yml
+
+      - name: Install dependencies
+        run: shards install --production --ignore-crystal-version
+
       - name: Build static
-        if: contains(matrix.os, 'ubuntu')
         run: shards build --release --no-debug --static
 
       - name: Upload application
-        id: upload
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
@@ -61,18 +87,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Homebrew formula update
-        uses: mislav/bump-homebrew-formula-action@v1.12
-        if: contains(matrix.os, 'macos')
-        env:
-          COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
-        with:
-          formula-name: werk
-          homebrew-tap: marghidanu/homebrew-werk
-          base-branch: master
-
-  docker:
-    runs-on: ubuntu-latest
+  build-docker:
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout code
