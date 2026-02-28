@@ -11,7 +11,7 @@ module Werk
         visited << name
 
         graph.add_node(name)
-        @config.jobs[name].needs.each do |dependency|
+        resolve_needs(name, @config.jobs[name].needs).each do |dependency|
           graph.add_edge(dependency, name)
           stack << dependency
         end
