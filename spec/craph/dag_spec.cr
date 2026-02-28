@@ -53,6 +53,30 @@ describe Craph::DAG do
     end
   end
 
+  it "should exclude cyclic nodes when not strict" do
+    dag = Craph::DAG(String).new
+    dag.add_edge("a", "b")
+    dag.add_edge("b", "a")
+
+    plan = dag.topological_sort(strict: false)
+    plan.should be_empty
+  end
+
+  it "should sort acyclic nodes and skip cyclic ones when not strict" do
+    dag = Craph::DAG(String).new
+    dag.add_edge("a", "b")
+    dag.add_edge("c", "d")
+    dag.add_edge("d", "c")
+
+    plan = dag.topological_sort(strict: false)
+    all_nodes = plan.flat_map(&.to_a)
+
+    all_nodes.should contain "a"
+    all_nodes.should contain "b"
+    all_nodes.should_not contain "c"
+    all_nodes.should_not contain "d"
+  end
+
   it "should treat empty graph as acyclic" do
     dag = Craph::DAG(String).new
 

@@ -17,7 +17,9 @@ module Craph
 
     # Return the nodes sorted topologically.
     # The algorithm uses clustered output to allow for parallel processing.
-    def topological_sort : Array(Set(T))
+    # When strict (default), raises CycleError if cycles exist.
+    # When not strict, cyclic nodes are excluded from the result.
+    def topological_sort(strict : Bool = true) : Array(Set(T))
       ba = Hash(T, Set(T)).new
 
       nodes.each do |node|
@@ -42,7 +44,7 @@ module Craph
         end
       end
 
-      raise CycleError.new("Graph has a cycle!") unless ba.empty?
+      raise CycleError.new("Graph has a cycle!") if strict && !ba.empty?
       result
     end
 
