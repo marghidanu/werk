@@ -93,3 +93,11 @@ jobs:
     executor: local
     commands:
       - export | grep WERK
+
+  shellcheck:demo:
+    description: ShellCheck integration demo
+    executor: docker
+    shellcheck: warn
+    commands:
+      - unused=1
+      - echo $1

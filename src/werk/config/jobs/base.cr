@@ -1,5 +1,11 @@
 module Werk
   class Config
+    enum ShellCheckMode
+      Off
+      Warn
+      Strict
+    end
+
     abstract class Job
       include YAML::Serializable
 
@@ -36,6 +42,9 @@ module Werk
 
       @[YAML::Field(key: "interpreter")]
       getter interpreter : String = "/bin/sh"
+
+      @[YAML::Field(key: "shellcheck")]
+      getter shellcheck : Config::ShellCheckMode = Config::ShellCheckMode::Off
 
       def script_content : String
         commands.join("\n")

@@ -11,7 +11,7 @@ require "wait_group"
 
 require "../src/craph"
 require "../src/docr"
-require "../src/gitleaks"
+require "../src/tools"
 require "../src/vault"
 
 require "./werk/error"
