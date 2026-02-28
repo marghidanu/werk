@@ -52,8 +52,6 @@ jobs:
 
   build-linux:
     runs-on: "${{ matrix.os }}"
-    container:
-      image: 84codes/crystal:1.19.1-alpine
     strategy:
       matrix:
         include:
@@ -63,20 +61,19 @@ jobs:
             asset: werk-linux-arm64
 
     steps:
-      - name: Install build dependencies
-        run: apk add --no-cache yaml-static zlib-static yq
-
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Update shard version
         run: yq eval -i ".version = \"${APP_VERSION}\"" shard.yml
 
-      - name: Install dependencies
-        run: shards install --production --ignore-crystal-version
-
       - name: Build static
-        run: shards build --release --no-debug --static
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/app" -w /app \
+            84codes/crystal:1.19.1-alpine \
+            sh -c "apk add --no-cache yaml-static zlib-static && \
+                   shards install --production --ignore-crystal-version && \
+                   shards build --release --no-debug --static"
 
       - name: Upload application
         uses: actions/upload-release-asset@v1
