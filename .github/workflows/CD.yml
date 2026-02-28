@@ -69,9 +69,9 @@ jobs:
 
       - name: Build static
         run: |
-          docker run --rm -v "${{ github.workspace }}:/app" -w /app \
+          docker run --rm --entrypoint sh -v "${{ github.workspace }}:/app" -w /app \
             84codes/crystal:1.19.1-alpine \
-            sh -c "apk add --no-cache yaml-static zlib-static && \
+            -c "apk add --no-cache yaml-static zlib-static && \
                    shards install --production --ignore-crystal-version && \
                    shards build --release --no-debug --static"
 
