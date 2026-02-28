@@ -15,7 +15,7 @@ env:
   APP_VERSION: 0.0.${{ github.run_number }}
 
 jobs:
-  lint:
+  hadolint:
     runs-on: ubuntu-24.04
 
     steps:
@@ -24,6 +24,13 @@ jobs:
 
       - name: Hadolint
         uses: hadolint/hadolint-action@v3.1.0
+
+  ameba:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Install Crystal
         uses: oprypin/install-crystal@v1
@@ -36,6 +43,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
+    needs: ameba
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -80,6 +88,7 @@ jobs:
           check_name: Tests (${{ matrix.os }})
 
   build:
+    needs: hadolint
     runs-on: ubuntu-24.04
 
     steps:
