@@ -39,7 +39,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest, ubuntu-24.04-arm]
 
     steps:
       - name: Install Crystal
@@ -51,13 +51,14 @@ jobs:
         if: contains(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update
-          sudo apt-get install -y libyaml-dev
+          sudo apt-get install -y libyaml-dev shellcheck
           GITLEAKS_VERSION=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | grep -Po '"tag_name": "v\K[^"]+')
-          wget -qO- "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | sudo tar xz -C /usr/local/bin gitleaks
+          ARCH=$(dpkg --print-architecture | sed 's/amd64/x64/')
+          wget -qO- "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${ARCH}.tar.gz" | sudo tar xz -C /usr/local/bin gitleaks
 
       - name: Additional macOS dependencies
         if: contains(matrix.os, 'macos')
-        run: brew install gitleaks
+        run: brew install gitleaks shellcheck
 
       - name: Checkout code
         uses: actions/checkout@v4

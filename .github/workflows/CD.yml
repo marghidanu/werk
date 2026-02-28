@@ -18,6 +18,8 @@ jobs:
             asset: werk-darwin-arm64
           - os: ubuntu-latest
             asset: werk-linux-amd64
+          - os: ubuntu-24.04-arm
+            asset: werk-linux-arm64
 
     steps:
       - name: Install Crystal
