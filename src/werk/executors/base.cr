@@ -2,6 +2,19 @@ module Werk::Executors
   ABNORMAL_EXIT = 255
 
   abstract class Base
+    @@shellcheck_scanner_initialized = false
+    @@shellcheck_scanner : ShellCheck::Scanner?
+
+    protected def self.shellcheck_scanner : ShellCheck::Scanner?
+      unless @@shellcheck_scanner_initialized
+        @@shellcheck_scanner_initialized = true
+        @@shellcheck_scanner = ShellCheck::Scanner.new
+      end
+      @@shellcheck_scanner
+    rescue ShellCheck::Error
+      nil
+    end
+
     def execute(
       ctx : Werk::Context,
       job_config : Werk::Config::Job,
@@ -14,7 +27,7 @@ module Werk::Executors
 
       start = Time.instant
       begin
-        exit_code = perform(ctx, job_config, output_io)
+        exit_code = run_shellcheck(job_config, output_io) || perform(ctx, job_config, output_io)
       rescue ex : Exception
         Log.error { "Job #{ctx.name} failed. Exception: #{ex.message}" }
         exit_code = ABNORMAL_EXIT
@@ -41,6 +54,27 @@ module Werk::Executors
     ) : Int32
 
     abstract def terminate : Nil
+
+    private def run_shellcheck(job_config : Werk::Config::Job, output : IO) : Int32?
+      return nil if job_config.shellcheck.off?
+
+      shell = ShellCheck::Scanner.shell_name(job_config.interpreter)
+      scanner = self.class.shellcheck_scanner
+      return nil unless shell && scanner
+
+      findings = scanner.scan(job_config.script_content, shell)
+      return nil if findings.empty?
+
+      findings.each do |finding|
+        output.puts "SC#{finding.code} (#{finding.level}) line #{finding.line}: #{finding.message}"
+      end
+
+      if job_config.shellcheck.strict? && findings.any? { |finding| finding.level == "error" || finding.level == "warning" }
+        return 1
+      end
+
+      nil
+    end
   end
 
   class ExecutionResult
