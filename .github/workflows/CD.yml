@@ -41,6 +41,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Homebrew formula update
+        if: ${{ !github.event.release.prerelease }}
         uses: mislav/bump-homebrew-formula-action@v1.12
         env:
           COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
@@ -63,13 +64,13 @@ jobs:
 
     steps:
       - name: Install build dependencies
-        run: apk add --no-cache yaml-static zlib-static
+        run: apk add --no-cache yaml-static zlib-static yq
 
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Update shard version
-        run: sed -i "s/^version: .*/version: ${APP_VERSION}/" shard.yml
+        run: yq eval -i ".version = \"${APP_VERSION}\"" shard.yml
 
       - name: Install dependencies
         run: shards install --production --ignore-crystal-version
