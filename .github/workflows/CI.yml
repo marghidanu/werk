@@ -15,17 +15,7 @@ env:
   APP_VERSION: 0.0.${{ github.run_number }}
 
 jobs:
-  hadolint:
-    runs-on: ubuntu-24.04
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Hadolint
-        uses: hadolint/hadolint-action@v3.1.0
-
-  ameba:
+  lint:
     runs-on: ubuntu-24.04
 
     steps:
@@ -43,7 +33,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
-    needs: ameba
+    needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -88,12 +78,15 @@ jobs:
           check_name: Tests (${{ matrix.os }})
 
   build:
-    needs: hadolint
+    needs: test
     runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
 
       - name: Simulate release version
         run: yq eval -i ".version = \"${APP_VERSION}\"" shard.yml
