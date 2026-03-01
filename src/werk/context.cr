@@ -4,7 +4,7 @@ module Werk
     getter target : String
     getter name : String
     getter directory : String
-    getter variables : Hash(String, String)
+    getter variables : Werk::Variables
     getter stage_id : Int32
     getter batch_id : Int32
 

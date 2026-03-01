@@ -12,7 +12,7 @@ describe Werk::Pipeline do
     ))
 
     pipeline = Werk::Pipeline.new(config)
-    result = pipeline.run("main", ".", Hash(String, String).new)
+    result = pipeline.run("main", ".", Werk::Variables.new)
 
     result.target.should eq "main"
     result.find_job("main").exit_code.should eq 0
@@ -36,7 +36,7 @@ describe Werk::Pipeline do
     ))
 
     pipeline = Werk::Pipeline.new(config)
-    result = pipeline.run("main", ".", Hash(String, String).new)
+    result = pipeline.run("main", ".", Werk::Variables.new)
 
     result.find_job("setup").exit_code.should eq 0
     result.find_job("main").exit_code.should eq 0
@@ -61,7 +61,7 @@ describe Werk::Pipeline do
     ))
 
     pipeline = Werk::Pipeline.new(config)
-    result = pipeline.run("main", ".", Hash(String, String).new)
+    result = pipeline.run("main", ".", Werk::Variables.new)
 
     result.find_job("failing").exit_code.should eq 1
     result.has_job?("main").should be_false
@@ -85,7 +85,7 @@ describe Werk::Pipeline do
     ))
 
     pipeline = Werk::Pipeline.new(config)
-    result = pipeline.run("main", ".", Hash(String, String).new)
+    result = pipeline.run("main", ".", Werk::Variables.new)
 
     result.find_job("flaky").exit_code.should eq 1
     result.find_job("main").exit_code.should eq 0
@@ -113,7 +113,7 @@ describe Werk::Pipeline do
     ))
 
     pipeline = Werk::Pipeline.new(config)
-    result = pipeline.run("main", ".", Hash(String, String).new)
+    result = pipeline.run("main", ".", Werk::Variables.new)
 
     result.find_job("failing").exit_code.should eq 1
     result.find_job("passing").exit_code.should eq 0
@@ -134,7 +134,7 @@ describe Werk::Pipeline do
     ))
 
     pipeline = Werk::Pipeline.new(config)
-    result = pipeline.run("main", ".", Hash(String, String).new)
+    result = pipeline.run("main", ".", Werk::Variables.new)
 
     result.find_job("main").exit_code.should eq 255
   end
@@ -157,7 +157,7 @@ describe Werk::Pipeline do
 
     # First run
     pipeline = Werk::Pipeline.new(config)
-    pipeline.run("main", ".", Hash(String, String).new)
+    pipeline.run("main", ".", Werk::Variables.new)
 
     # After run, config should not have WERK_* variables injected
     config.jobs["main"].variables.has_key?("WERK_SESSION_ID").should be_false
@@ -175,7 +175,7 @@ describe Werk::Pipeline do
     ))
 
     pipeline = Werk::Pipeline.new(config)
-    result = pipeline.run("main", ".", {"MY_VAR" => "hello from var"})
+    result = pipeline.run("main", ".", Werk::Variables.new({"MY_VAR" => "hello from var"}))
 
     result.find_job("main").exit_code.should eq 0
     result.find_job("main").output.should contain "hello from var"
@@ -192,7 +192,7 @@ describe Werk::Pipeline do
     ))
 
     pipeline = Werk::Pipeline.new(config)
-    result = pipeline.run("main", ".", Hash(String, String).new)
+    result = pipeline.run("main", ".", Werk::Variables.new)
 
     result.find_job("main").exit_code.should eq 0
     result.find_job("main").output.should contain "main main"
@@ -211,7 +211,7 @@ describe Werk::Pipeline do
     ))
 
     pipeline = Werk::Pipeline.new(config)
-    result = pipeline.run("main", ".", Hash(String, String).new)
+    result = pipeline.run("main", ".", Werk::Variables.new)
 
     result.find_job("main").exit_code.should eq 0
     result.find_job("main").output.should contain "from_job"
@@ -230,7 +230,7 @@ describe Werk::Pipeline do
     ))
 
     pipeline = Werk::Pipeline.new(config)
-    result = pipeline.run("main", ".", Hash(String, String).new)
+    result = pipeline.run("main", ".", Werk::Variables.new)
 
     result.find_job("main").exit_code.should eq 0
     result.find_job("main").output.should contain "from_config"
@@ -249,7 +249,7 @@ describe Werk::Pipeline do
     ))
 
     pipeline = Werk::Pipeline.new(config)
-    result = pipeline.run("main", ".", {"MY_VAR" => "from_run"})
+    result = pipeline.run("main", ".", Werk::Variables.new({"MY_VAR" => "from_run"}))
 
     result.find_job("main").exit_code.should eq 0
     result.find_job("main").output.should contain "from_run"
@@ -298,7 +298,7 @@ describe Werk::Pipeline do
 
     result_channel = Channel(Werk::PipelineResult).new
     spawn do
-      result = pipeline.run("main", ".", Hash(String, String).new)
+      result = pipeline.run("main", ".", Werk::Variables.new)
       result_channel.send(result)
     end
 
@@ -332,7 +332,7 @@ describe Werk::Pipeline do
 
     result_channel = Channel(Werk::PipelineResult).new
     spawn do
-      result = pipeline.run("main", ".", Hash(String, String).new)
+      result = pipeline.run("main", ".", Werk::Variables.new)
       result_channel.send(result)
     end
 

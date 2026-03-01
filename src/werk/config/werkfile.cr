@@ -15,7 +15,7 @@ module Werk
 
     # List of global variables
     @[YAML::Field(key: "variables")]
-    getter variables = Hash(String, String).new
+    getter variables = Werk::Variables.new
 
     @[YAML::Field(key: "max_jobs")]
     property max_jobs : Int32 = 0
