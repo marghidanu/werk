@@ -9,6 +9,7 @@ module Werk::Commands::Vault::Encrypt
       opt.on("-h", "--help", "Show this help") { puts opt; exit 0 }
 
       opt.invalid_option { |flag| STDERR.puts "Error: Unknown option '#{flag}'"; STDERR.puts opt; exit 1 }
+      opt.missing_option { |flag| STDERR.puts "Error: Missing value for '#{flag}'"; STDERR.puts opt; exit 1 }
     end
 
     parser.parse(args)
