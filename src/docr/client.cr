@@ -39,7 +39,7 @@ module Docr
       end
 
       path = SOCKET_PATHS.find { |sock| File.exists?(sock) }
-      raise DockerError.new("Docker socket not found. Set DOCKER_HOST or ensure Docker is running.") unless path
+      raise Error.new("Docker socket not found. Set DOCKER_HOST or ensure Docker is running.") unless path
 
       host = URI.new(scheme: "unix", host: "", path: path.to_s).to_s
       Log.debug { "Detected Docker socket: #{host}" }
@@ -49,7 +49,7 @@ module Docr
     def self.available? : Bool
       detect_host
       true
-    rescue DockerError
+    rescue Error
       false
     end
 
@@ -73,19 +73,11 @@ module Docr
       resource = url.is_a?(URI) ? url.to_s : url
       @client.exec(method, resource, headers, body) do |response|
         unless response.success?
-          raise DockerError.new(response.body_io.gets_to_end, response.status_code)
+          raise Error.new(response.body_io.gets_to_end, response.status_code)
         end
 
         yield response
       end
-    end
-  end
-
-  class DockerError < Exception
-    getter status_code : Int32?
-
-    def initialize(message : String, @status_code : Int32? = nil)
-      super(message)
     end
   end
 end

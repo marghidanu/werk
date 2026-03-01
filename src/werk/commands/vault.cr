@@ -10,11 +10,11 @@ module Werk::Commands
 
       case args.shift
       when "encrypt"
-        Werk::Commands::Encrypt.run(args)
+        Encrypt.run(args)
       when "decrypt"
-        Werk::Commands::Decrypt.run(args)
+        Decrypt.run(args)
       when "rekey"
-        Werk::Commands::Rekey.run(args)
+        Rekey.run(args)
       when "--help", "-h"
         print_help
       else

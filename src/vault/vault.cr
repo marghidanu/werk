@@ -6,8 +6,6 @@ require "random/secure"
 module Vault
   Log = ::Log.for(self)
 
-  class Error < Exception; end
-
   # Stores a password XOR'd with a random pad so plaintext never
   # sits in memory. A memory dump would show random bytes.
   class ObfuscatedPassword
