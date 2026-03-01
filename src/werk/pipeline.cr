@@ -50,8 +50,23 @@ module Werk
 
           batch.each_with_index do |name, job_id|
             job = @config.jobs[name]
-
             job_dotenv_vars, vault_passwords = Vault.load_dotenv_files(job.dotenv, vault_passwords)
+
+            # Variable precedence (lowest to highest):
+            # config → config dotenv → job → job dotenv → CLI → built-ins
+            merged_vars = @config.variables
+              .merge(dotenv_vars)
+              .merge(job.variables)
+              .merge(job_dotenv_vars)
+              .merge(variables)
+              .merge({
+                "WERK_JOB_DESCRIPTION" => job.description,
+                "WERK_JOB_NAME"        => name,
+                "WERK_SESSION_ID"      => @session_id.to_s,
+                "WERK_SESSION_TARGET"  => target,
+                "WERK_STAGE_ID"        => stage_id.to_s,
+                "WERK_YES"             => yes.to_s,
+              })
 
             ctx = Werk::Context.new(
               session_id: @session_id,
@@ -60,21 +75,7 @@ module Werk
               directory: cwd,
               stage_id: stage_id,
               batch_id: batch_id,
-              # Variable precedence (lowest to highest):
-              # config → config dotenv → job → job dotenv → CLI → built-ins
-              variables: @config.variables
-                .merge(dotenv_vars)
-                .merge(job.variables)
-                .merge(job_dotenv_vars)
-                .merge(variables)
-                .merge({
-                  "WERK_JOB_DESCRIPTION" => job.description,
-                  "WERK_JOB_NAME"        => name,
-                  "WERK_SESSION_ID"      => @session_id.to_s,
-                  "WERK_SESSION_TARGET"  => target,
-                  "WERK_STAGE_ID"        => stage_id.to_s,
-                  "WERK_YES"             => yes.to_s,
-                }),
+              variables: merged_vars,
             )
 
             spawn do

@@ -1,7 +1,7 @@
 require "../spec_helper"
 
-describe "Job#script_content" do
-  it "should join commands with newlines" do
+describe "Job#commands" do
+  it "should parse multiple commands" do
     config = Werk::Config.load_string(%(
       version: 1.0
       jobs:
@@ -12,7 +12,7 @@ describe "Job#script_content" do
             - echo world
     ))
 
-    config.jobs["main"].script_content.should eq "echo hello\necho world"
+    config.jobs["main"].commands.should eq ["echo hello", "echo world"]
   end
 
   it "should handle a single command" do
@@ -25,10 +25,10 @@ describe "Job#script_content" do
             - ls -la
     ))
 
-    config.jobs["main"].script_content.should eq "ls -la"
+    config.jobs["main"].commands.should eq ["ls -la"]
   end
 
-  it "should handle empty commands" do
+  it "should default to empty" do
     config = Werk::Config.load_string(%(
       version: 1.0
       jobs:
@@ -36,6 +36,6 @@ describe "Job#script_content" do
           executor: local
     ))
 
-    config.jobs["main"].script_content.should eq ""
+    config.jobs["main"].commands.should be_empty
   end
 end

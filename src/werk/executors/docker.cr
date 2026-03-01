@@ -20,9 +20,13 @@ module Werk::Executors
       output : IO,
     ) : Int32
       job = job_config.as(Werk::Config::DockerJob)
+      image = interpolation.interpolate(job.image)
+      entrypoint = interpolation.interpolate_all(job.entrypoint)
+      volumes = interpolation.interpolate_all(job.volumes)
+      network_mode = interpolation.interpolate(job.network_mode)
 
       # Ensure the image is available locally (one pull per image)
-      ensure_image(job.image, output)
+      ensure_image(image, output)
 
       # Create container
       container_name = "#{Digest::MD5.hexdigest(ctx.name)}-#{ctx.session_id}"
@@ -30,16 +34,16 @@ module Werk::Executors
       container = client.containers.create(
         container_name,
         Docr::ContainerConfig.new(
-          image: job.image,
-          entrypoint: job.entrypoint,
-          cmd: ["-c", job.script_content],
+          image: image,
+          entrypoint: entrypoint,
+          cmd: ["-c", job.commands.join("\n")],
           working_dir: "/opt/workspace",
-          env: ctx.variables,
+          env: interpolation.variables,
           host_config: Docr::HostConfig.new(
-            network_mode: job.network_mode,
+            network_mode: network_mode,
             binds: [
               "#{Path[ctx.directory].expand}:/opt/workspace",
-            ].concat(job.volumes)
+            ].concat(volumes)
           ),
           labels: {
             "com.stuffo.werk.name"       => ctx.name,

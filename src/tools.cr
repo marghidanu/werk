@@ -1,1 +1,1 @@
-require "./tools/gitleaks"
+require "./tools/*"
