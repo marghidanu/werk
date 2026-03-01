@@ -39,7 +39,7 @@ module Werk::Executors
           host_config: Docr::Types::HostConfig.new(
             network_mode: network_mode,
             binds: [
-              "#{Path[ctx.directory].expand}:/opt/workspace",
+              "#{Path[ctx.cwd].expand}:/opt/workspace",
             ].concat(volumes)
           ),
           labels: {

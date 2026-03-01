@@ -20,7 +20,7 @@ module Werk::Executors
         env: interpolation.variables,
         output: Process::Redirect::Pipe,
         error: Process::Redirect::Pipe,
-        chdir: ctx.directory,
+        chdir: ctx.cwd,
       )
 
       @process = process

@@ -3,7 +3,7 @@ module Werk::Commands::Run
 
   def self.run(args : Array(String))
     config_file = "werk.yml"
-    working_dir = Dir.current
+    cwd = Dir.current
     max_jobs = 0
     from_stdin = false
     show_report = false
@@ -17,7 +17,7 @@ module Werk::Commands::Run
       opt.separator ""
 
       opt.on("-c CONFIG", "--config=CONFIG", "Configuration file name (default: werk.yml)") { |v| config_file = v }
-      opt.on("-x DIR", "--context=DIR", "Working directory (default: .)") { |v| working_dir = Path[v].expand.to_s }
+      opt.on("-x DIR", "--cwd=DIR", "Working directory (default: .)") { |v| cwd = Path[v].expand.to_s }
       opt.on("-j JOBS", "--jobs=JOBS", "Max parallel jobs (default: 0 = auto)") { |v| max_jobs = v.to_i32 }
       opt.on("--stdin", "Read configuration from STDIN") { from_stdin = true }
       opt.on("-r", "--report", "Display execution report") { show_report = true }
@@ -39,7 +39,7 @@ module Werk::Commands::Run
     pipeline = Werk::Pipeline.new(config)
     report = pipeline.run(
       target: target,
-      cwd: working_dir,
+      cwd: cwd,
       variables: variables,
       yes: yes,
     )

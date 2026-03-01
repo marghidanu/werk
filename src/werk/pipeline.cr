@@ -77,7 +77,7 @@ module Werk
               session_id: @session_id,
               target: target,
               name: name,
-              directory: cwd,
+              cwd: cwd,
               stage_id: stage_id,
               batch_id: batch_id,
               variables: merged_vars,

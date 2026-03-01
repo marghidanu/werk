@@ -3,7 +3,7 @@ module Werk
     getter session_id : UUID
     getter target : String
     getter name : String
-    getter directory : String
+    getter cwd : String
     getter variables : Werk::Variables
     getter stage_id : Int32
     getter batch_id : Int32
@@ -12,7 +12,7 @@ module Werk
       @session_id,
       @target,
       @name,
-      @directory,
+      @cwd,
       @variables,
       @stage_id,
       @batch_id,
