@@ -1,6 +1,4 @@
 module Gitleaks
-  class Error < Exception; end
-
   class Scanner
     Log = ::Log.for(self)
 

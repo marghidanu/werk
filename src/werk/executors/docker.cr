@@ -33,13 +33,13 @@ module Werk::Executors
       Log.debug { "Creating container '#{container_name}'" }
       container = client.containers.create(
         container_name,
-        Docr::ContainerConfig.new(
+        Docr::Types::ContainerConfig.new(
           image: image,
           entrypoint: entrypoint,
           cmd: ["-c", job.commands.join("\n")],
           working_dir: "/opt/workspace",
           env: interpolation.variables,
-          host_config: Docr::HostConfig.new(
+          host_config: Docr::Types::HostConfig.new(
             network_mode: network_mode,
             binds: [
               "#{Path[ctx.directory].expand}:/opt/workspace",
@@ -77,7 +77,7 @@ module Werk::Executors
         Log.debug { "Terminating container '#{container_id}'" }
         client.containers.kill(container_id, "SIGTERM")
       end
-    rescue ex : Docr::DockerError
+    rescue ex : Docr::Error
       Log.debug { "Failed to kill container: #{ex.message}" }
     end
 

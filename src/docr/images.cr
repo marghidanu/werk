@@ -12,7 +12,7 @@ module Docr
       end
 
       true
-    rescue DockerError
+    rescue Error
       false
     end
 

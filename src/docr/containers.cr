@@ -7,7 +7,7 @@ module Docr
     end
 
     # Create a new container with the given name and configuration.
-    def create(name : String, config : ContainerConfig) : CreateContainerResponse
+    def create(name : String, config : Types::ContainerConfig) : Types::CreateContainerResponse
       url = URI.new(
         path: "/containers/create",
         query: URI::Params{
@@ -20,7 +20,7 @@ module Docr
       }
 
       @client.call("POST", url, headers, config.to_json) do |response|
-        return CreateContainerResponse.from_json(response.body_io.gets_to_end)
+        return Types::CreateContainerResponse.from_json(response.body_io.gets_to_end)
       end
     end
 
@@ -51,11 +51,11 @@ module Docr
     end
 
     # Block until a container stops, then return the exit code.
-    def wait(id : String) : WaitResponse
+    def wait(id : String) : Types::WaitResponse
       url = URI.new(path: "/containers/#{id}/wait")
 
       @client.call("POST", url) do |response|
-        return WaitResponse.from_json(response.body_io.gets_to_end)
+        return Types::WaitResponse.from_json(response.body_io.gets_to_end)
       end
     end
 
@@ -74,7 +74,7 @@ module Docr
     end
 
     # List containers, optionally filtered.
-    def list(filters : Hash(String, Array(String))? = nil) : Array(ContainerSummary)
+    def list(filters : Hash(String, Array(String))? = nil) : Array(Types::ContainerSummary)
       url = URI.new(
         path: "/containers/json",
         query: (filters ? URI::Params{
@@ -83,7 +83,7 @@ module Docr
       )
 
       @client.call("GET", url) do |response|
-        return Array(ContainerSummary).from_json(response.body_io.gets_to_end)
+        return Array(Types::ContainerSummary).from_json(response.body_io.gets_to_end)
       end
     end
 

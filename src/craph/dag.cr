@@ -1,6 +1,4 @@
 module Craph
-  class CycleError < Exception; end
-
   # Directed Acyclic Graph, extends Graph with cycle detection and topological sorting.
   class DAG(T) < Graph(T)
     # Check if the graph has no cycles using DFS

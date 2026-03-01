@@ -1,4 +1,4 @@
-module Werk::Commands
+module Werk::Commands::Vault
   module Decrypt
     def self.run(args : Array(String))
       parser = OptionParser.new do |opt|

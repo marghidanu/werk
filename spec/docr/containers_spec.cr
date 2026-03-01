@@ -10,7 +10,7 @@ describe Docr::Containers do
 
     container = client.containers.create(
       "docr-test-logs",
-      Docr::ContainerConfig.new(
+      Docr::Types::ContainerConfig.new(
         image: "alpine:latest",
         cmd: ["sh", "-c", "echo hello from docker && echo error message >&2"],
       )
@@ -41,7 +41,7 @@ describe Docr::Containers do
 
     container = client.containers.create(
       "docr-test-exit",
-      Docr::ContainerConfig.new(
+      Docr::Types::ContainerConfig.new(
         image: "alpine:latest",
         cmd: ["sh", "-c", "exit 42"],
       )
@@ -58,9 +58,9 @@ describe Docr::Containers do
   end
 end
 
-describe Docr::ContainerConfig do
+describe Docr::Types::ContainerConfig do
   it "should serialize to JSON with PascalCase keys" do
-    config = Docr::ContainerConfig.new(
+    config = Docr::Types::ContainerConfig.new(
       image: "alpine:latest",
       cmd: ["/bin/sh"],
       working_dir: "/opt",
@@ -78,7 +78,7 @@ describe Docr::ContainerConfig do
   end
 
   it "should omit nil fields" do
-    config = Docr::ContainerConfig.new(image: "alpine")
+    config = Docr::Types::ContainerConfig.new(image: "alpine")
 
     json = JSON.parse(config.to_json)
 
@@ -88,9 +88,9 @@ describe Docr::ContainerConfig do
   end
 end
 
-describe Docr::HostConfig do
+describe Docr::Types::HostConfig do
   it "should serialize binds and network mode" do
-    host_config = Docr::HostConfig.new(
+    host_config = Docr::Types::HostConfig.new(
       network_mode: "host",
       binds: ["/src:/dst"],
     )
@@ -102,32 +102,32 @@ describe Docr::HostConfig do
   end
 end
 
-describe Docr::CreateContainerResponse do
+describe Docr::Types::CreateContainerResponse do
   it "should deserialize from JSON" do
-    response = Docr::CreateContainerResponse.from_json(%({"Id": "abc123", "Warnings": ["warn1"]}))
+    response = Docr::Types::CreateContainerResponse.from_json(%({"Id": "abc123", "Warnings": ["warn1"]}))
 
     response.id.should eq "abc123"
     response.warnings.should eq ["warn1"]
   end
 end
 
-describe Docr::WaitResponse do
+describe Docr::Types::WaitResponse do
   it "should deserialize status code" do
-    response = Docr::WaitResponse.from_json(%({"StatusCode": 0}))
+    response = Docr::Types::WaitResponse.from_json(%({"StatusCode": 0}))
 
     response.status_code.should eq 0
   end
 
   it "should deserialize non-zero status code" do
-    response = Docr::WaitResponse.from_json(%({"StatusCode": 137}))
+    response = Docr::Types::WaitResponse.from_json(%({"StatusCode": 137}))
 
     response.status_code.should eq 137
   end
 end
 
-describe Docr::ContainerSummary do
+describe Docr::Types::ContainerSummary do
   it "should deserialize from JSON" do
-    response = Docr::ContainerSummary.from_json(%({"Id": "abc123", "Names": ["/my-container"], "State": "running"}))
+    response = Docr::Types::ContainerSummary.from_json(%({"Id": "abc123", "Names": ["/my-container"], "State": "running"}))
 
     response.id.should eq "abc123"
     response.names.should eq ["/my-container"]
