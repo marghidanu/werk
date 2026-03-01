@@ -9,7 +9,7 @@ module Werk::Executors
       job_config : Werk::Config::Job,
     ) : ExecutionResult
       # Expand variable references.
-      interpolation.expand(ctx.variables)
+      interpolation.expand(ctx.variables.to_h)
 
       buffer_io = IO::Memory.new
       writers = Array(IO).new

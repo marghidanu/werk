@@ -9,13 +9,13 @@ module Werk::Executors
       job_config : Werk::Config::Job,
       output : IO,
     ) : Int32
-      Log.debug { "Starting process with #{job_config.interpreter} -c ..." }
+      Log.debug { "Starting process with #{job_config.entrypoint.join(" ")} ..." }
 
       # Use Redirect::Pipe so we control the output copy fibers ourselves.
       # Crystal's internal copy fibers lack error handling, which causes
       # "Unhandled exception in spawn: Broken pipe" at process exit.
-      process = Process.new(job_config.interpreter,
-        args: ["-c", job_config.commands.join("\n")],
+      process = Process.new(job_config.entrypoint.first,
+        args: job_config.entrypoint[1..] + [job_config.commands.join("\n")],
         shell: false,
         env: interpolation.variables,
         output: Process::Redirect::Pipe,

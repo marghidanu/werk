@@ -8,11 +8,8 @@ module Werk::Executors
     @@pull_meta_mutex = Mutex.new
 
     @container_id : String?
-    @client : Docr::Client?
 
-    private def client : Docr::Client
-      @client ||= Docr::Client.new
-    end
+    private getter client = Docr::Client.new
 
     protected def perform(
       ctx : Werk::Context,
@@ -21,7 +18,7 @@ module Werk::Executors
     ) : Int32
       job = job_config.as(Werk::Config::DockerJob)
       image = interpolation.interpolate(job.image)
-      entrypoint = interpolation.interpolate_all(job.entrypoint)
+      entrypoint = interpolation.interpolate_all(job_config.entrypoint)
       volumes = interpolation.interpolate_all(job.volumes)
       network_mode = interpolation.interpolate(job.network_mode)
 
@@ -36,7 +33,7 @@ module Werk::Executors
         Docr::Types::ContainerConfig.new(
           image: image,
           entrypoint: entrypoint,
-          cmd: ["-c", job.commands.join("\n")],
+          cmd: [job.commands.join("\n")],
           working_dir: "/opt/workspace",
           env: interpolation.variables,
           host_config: Docr::Types::HostConfig.new(
