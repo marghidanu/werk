@@ -1,1 +1,1 @@
-require "./vault/vault"
+require "./vault/*"

@@ -15,9 +15,9 @@ module Werk::Executors
       # Crystal's internal copy fibers lack error handling, which causes
       # "Unhandled exception in spawn: Broken pipe" at process exit.
       process = Process.new(job_config.interpreter,
-        args: ["-c", job_config.script_content],
+        args: ["-c", job_config.commands.join("\n")],
         shell: false,
-        env: ctx.variables,
+        env: interpolation.variables,
         output: Process::Redirect::Pipe,
         error: Process::Redirect::Pipe,
         chdir: ctx.directory,

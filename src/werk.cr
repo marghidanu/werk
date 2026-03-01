@@ -13,6 +13,7 @@ require "../src/craph"
 require "../src/docr"
 require "../src/tools"
 require "../src/vault"
+require "../src/template"
 
 require "./werk/error"
 require "./werk/config/*"

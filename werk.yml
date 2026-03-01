@@ -4,65 +4,57 @@ description: "Manage Werk with Werk"
 
 jobs:
   main:
-    description: "Build application"
+    description: Run all checks and build the application
     executor: local
     needs:
-      - build:local
+      - build:*
 
-  build:
+  lint:crystal:
+    description: Lint the Crystal codebase
+    executor: docker
+    image: ghcr.io/crystal-ameba/ameba:${TAG}
+    variables:
+      TAG: latest
+    commands:
+      - ameba
+
+  lint:dockerfile:
+    description: Lint the Dockerfile
+    executor: docker
+    image: hadolint/hadolint:${TAG}
+    variables:
+      TAG: v2.14.0-debian
+    commands:
+      - hadolint -V Dockerfile
+
+  test:
+    description: Test the codebase
     executor: local
+    commands:
+      - crystal spec
     needs:
-      - build:local
-      - build:docker
+      - lint:*
 
   build:local:
+    description: Build the application
     executor: local
     commands:
       - shards install --ignore-crystal-version
       - shards build
     needs:
-      - qa
-
-  build:docker:
-    description: Docker build
-    executor: local
-    commands:
-      - docker build -t werk .
-    needs:
-      - qa
-
-  qa:
-    description: Linters and tests
-    executor: local
-    needs:
-      - lint
       - test
 
-  lint:
-    description: "Lint everything"
+  build:docker:
+    description: Build the Docker image
     executor: local
+    commands:
+      - >
+        docker build
+        --tag werk 
+        --build-arg RELEASE=
+        --no-cache .
     needs:
-      - lint:crystal
-      - lint:dockerfile
-
-  lint:crystal:
-    description: "Lint code"
-    executor: docker
-    image: ghcr.io/crystal-ameba/ameba:latest
-    commands:
-      - ameba
-
-  lint:dockerfile:
-    description: Lint Dockerfile
-    executor: local
-    commands:
-      - hadolint Dockerfile
-
-  test:
-    description: "Test code"
-    executor: local
-    commands:
-      - crystal spec
+      - test
 
   docs:
     description: Generate API documentation
@@ -70,34 +62,3 @@ jobs:
     commands:
       - crystal docs
       - open docs/index.html
-
-  install:
-    description: Install Werk locally
-    executor: local
-    commands:
-      - echo "Installing locally..."
-      - sudo cp -v ./bin/werk /usr/local/bin
-    needs:
-      - main
-
-  uninstall:
-    description: Uninstall Werk locally
-    executor: local
-    variables:
-      APP: /usr/local/bin/werk
-    commands:
-      - '[[ -f "${APP}" ]] && sudo rm -vf "${APP}" || echo "Werk is not installed!"'
-
-  vars:
-    description: Show variables
-    executor: local
-    commands:
-      - export | grep WERK
-
-  shellcheck:demo:
-    description: ShellCheck integration demo
-    executor: docker
-    shellcheck: warn
-    commands:
-      - unused=1
-      - echo $1

@@ -1,11 +1,5 @@
 module Werk
   class Config
-    enum ShellCheckMode
-      Off
-      Warn
-      Strict
-    end
-
     abstract class Job
       include YAML::Serializable
 
@@ -21,7 +15,7 @@ module Werk
       @[YAML::Field(key: "variables")]
       getter variables : Hash(String, String) = Hash(String, String).new
 
-      # List commands
+      # List of commands to execute
       @[YAML::Field(key: "commands")]
       getter commands : Array(String) = Array(String).new
 
@@ -29,7 +23,7 @@ module Werk
       @[YAML::Field(key: "needs")]
       getter needs : Array(String) = Array(String).new
 
-      # Signals if the job is allowed to fail or not.
+      # Signals if the job is allowed to fail or not
       @[YAML::Field(key: "can_fail")]
       getter? can_fail : Bool = false
 
@@ -37,18 +31,13 @@ module Werk
       @[YAML::Field(key: "silent")]
       getter? silent : Bool = false
 
+      # The executor type for this job
       @[YAML::Field(key: "executor")]
       getter executor : String
 
+      # The shell interpreter to use
       @[YAML::Field(key: "interpreter")]
       getter interpreter : String = "/bin/sh"
-
-      @[YAML::Field(key: "shellcheck")]
-      getter shellcheck : Config::ShellCheckMode = Config::ShellCheckMode::Off
-
-      def script_content : String
-        commands.join("\n")
-      end
 
       use_yaml_discriminator "executor", {
         local:  Werk::Config::LocalJob,
