@@ -1,6 +1,4 @@
 module Werk::Commands::Run
-  Log = ::Log.for(self)
-
   def self.run(args : Array(String))
     config_file = "werk.yml"
     cwd = Dir.current
