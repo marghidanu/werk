@@ -64,7 +64,7 @@ describe "Config" do
     defaults = config.jobs["defaults"].as(Werk::Config::DockerJob)
     defaults.image.should eq "alpine:latest"
     defaults.network_mode.should eq "bridge"
-    defaults.entrypoint.should eq ["/bin/sh"]
+    defaults.entrypoint.should eq ["/bin/sh", "-c"]
     defaults.volumes.should be_empty
   end
 

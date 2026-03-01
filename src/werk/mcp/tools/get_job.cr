@@ -22,7 +22,7 @@ class Werk::Mcp::GetJobTool < MCP::AbstractTool
       "name"         => name,
       "description"  => job.description,
       "executor"     => job.executor,
-      "interpreter"  => job.interpreter,
+      "entrypoint"   => job.entrypoint,
       "dependencies" => job.needs,
       "commands"     => job.commands,
       "can_fail"     => job.can_fail?,
