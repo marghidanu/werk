@@ -62,3 +62,11 @@ jobs:
     commands:
       - crystal docs
       - open docs/index.html
+
+  # --- Install application locally
+  install:
+    description: Install the application locally
+    executor: local
+    commands:
+      - shards build
+      - cp ./bin/werk $HOME/bin/werk

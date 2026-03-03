@@ -12,10 +12,9 @@ module Werk::Executors
       interpolation.expand(ctx.variables)
 
       buffer_io = IO::Memory.new
-      writers = Array(IO).new
-      writers << buffer_io
-      writers << Werk::Utils::PrefixIO.new(STDOUT, ctx.name) unless job_config.silent?
-      output_io = IO::MultiWriter.new(writers)
+      writers = [buffer_io] of IO
+      writers.push(Werk::Utils::PrefixIO.new(STDOUT, ctx.name)) unless job_config.silent?
+      output_io = IO::MultiWriter.new(writers, sync_close: true)
 
       start = Time.instant
       begin
@@ -23,6 +22,8 @@ module Werk::Executors
       rescue ex : Exception
         Log.error { "Job #{ctx.name} failed. Exception: #{ex.message}" }
         exit_code = ABNORMAL_EXIT
+      ensure
+        output_io.close
       end
       duration = (Time.instant - start).total_seconds
 
