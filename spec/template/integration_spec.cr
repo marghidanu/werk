@@ -93,7 +93,7 @@ describe "Template integration" do
       ))
 
       pipeline = Werk::Pipeline.new(config)
-      result = pipeline.run("main", ".", Hash(String, String).new)
+      result = pipeline.run("main", ".", Werk::Variables.new)
 
       result.find_job("main").exit_code.should eq 0
       result.find_job("main").output.should contain "hello from template"
@@ -113,7 +113,7 @@ describe "Template integration" do
       ))
 
       pipeline = Werk::Pipeline.new(config)
-      result = pipeline.run("main", ".", Hash(String, String).new)
+      result = pipeline.run("main", ".", Werk::Variables.new)
 
       result.find_job("main").exit_code.should eq 0
       result.find_job("main").output.should contain "ghcr.io/myapp"
@@ -133,7 +133,7 @@ describe "Template integration" do
       original_description = config.jobs["main"].description
 
       pipeline = Werk::Pipeline.new(config)
-      pipeline.run("main", ".", Hash(String, String).new)
+      pipeline.run("main", ".", Werk::Variables.new)
 
       config.jobs["main"].description.should eq original_description
     end
@@ -149,7 +149,7 @@ describe "Template integration" do
       ))
 
       pipeline = Werk::Pipeline.new(config)
-      result = pipeline.run("main", ".", {"RUNTIME_VAR" => "from_cli"})
+      result = pipeline.run("main", ".", Werk::Variables.new({"RUNTIME_VAR" => "from_cli"}))
 
       result.find_job("main").exit_code.should eq 0
       result.find_job("main").output.should contain "from_cli"

@@ -15,6 +15,7 @@ require "../src/vault"
 require "../src/template"
 
 require "../src/werk/error"
+require "../src/werk/variables"
 require "../src/werk/config/*"
 require "../src/werk/config/jobs/*"
 require "../src/werk/utils/*"

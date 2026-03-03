@@ -2,23 +2,23 @@ module Werk
   class Pipeline
     Log = ::Log.for(self)
 
+    SIGNALS = {Signal::INT, Signal::TERM}
+
     getter session_id = UUID.random
     getter scheduler : Werk::Scheduler
     getter? terminated = false
 
-    def initialize(
-      @config : Werk::Config,
-      scheduler : Werk::Scheduler? = nil,
-    )
-      @scheduler = scheduler || Werk::ParallelScheduler.new(@config)
+    def initialize(@config : Werk::Config)
+      @scheduler = Werk::ParallelScheduler.new(@config)
       @active_executors = Array(Werk::Executors::Base).new
     end
 
-    private def create_executor(type : String) : Werk::Executors::Base
-      case type
-      when "local"  then Werk::Executors::Local.new
-      when "docker" then Werk::Executors::Docker.new
-      else               raise Werk::Error.new("Unknown executor: #{type}")
+    private def create_executor(job : Werk::Config::Job) : Werk::Executors::Base
+      case job
+      when Werk::Config::LocalJob  then Werk::Executors::Local.new
+      when Werk::Config::DockerJob then Werk::Executors::Docker.new
+      else
+        raise Werk::Error.new("Unknown executor: #{job.class}")
       end
     end
 
@@ -26,14 +26,20 @@ module Werk
     def run(
       target : String,
       cwd : String,
-      variables : Hash(String, String),
+      variables : Werk::Variables,
       yes : Bool = false,
     )
+      SIGNALS.each do |signal|
+        signal.trap {
+          Log.debug { "Captured #{signal}!" }
+          terminate
+        }
+      end
+
       Log.debug { "Retrieve execution plan for '#{target}'" }
       plan = @scheduler.get_plan(target)
 
       dotenv_vars, vault_passwords = Vault.load_dotenv_files(@config.dotenv)
-
       all_jobs = Array(Werk::Executors::ExecutionResult).new
       max_jobs = @config.max_jobs < 1 ? System.cpu_count.to_i32 : @config.max_jobs
 
@@ -44,8 +50,7 @@ module Werk
         results = Channel(Werk::Executors::ExecutionResult).new
         exit_pipeline = false
 
-        batch_id = 0
-        stage.each_slice(max_jobs) do |batch|
+        stage.each_slice(max_jobs).with_index do |batch, batch_id|
           break if @terminated
 
           batch.each_with_index do |name, job_id|
@@ -72,14 +77,14 @@ module Werk
               session_id: @session_id,
               target: target,
               name: name,
-              directory: cwd,
+              cwd: cwd,
               stage_id: stage_id,
               batch_id: batch_id,
               variables: merged_vars,
             )
 
             spawn do
-              executor = create_executor(job.executor)
+              executor = create_executor(job)
               @active_executors << executor
 
               begin
@@ -101,8 +106,6 @@ module Werk
             # Determining if we need to stop the pipeline
             exit_pipeline ||= (result.exit_code != 0) && !job.can_fail?
           end
-
-          batch_id += 1
         end
 
         # If any of the jobs failed or pipeline was terminated, stop
@@ -114,6 +117,7 @@ module Werk
 
       PipelineResult.new(target: target, jobs: all_jobs)
     ensure
+      SIGNALS.each(&.reset)
       Vault.wipe_passwords(vault_passwords) if vault_passwords
     end
 
@@ -142,7 +146,7 @@ module Werk
       @target,
       @jobs = Array(Werk::Executors::ExecutionResult).new,
     )
-      @created = Time.local.to_unix_ms
+      @created = Time.utc.to_unix_ms
     end
 
     def find_job?(name : String) : Werk::Executors::ExecutionResult?
@@ -154,7 +158,31 @@ module Werk
     end
 
     def has_job?(name : String) : Bool
-      !find_job?(name).nil?
+      @jobs.any? { |job| job.name == name }
+    end
+
+    def to_table : String
+      Tallboy.table do
+        header do
+          cell "Name", align: :center
+          cell "Stage", align: :center
+          cell "Status", align: :center
+          cell "Exit code", align: :center
+          cell "Duration", align: :center
+          cell "Executor", align: :center
+        end
+
+        @jobs.each do |job|
+          row border: :bottom do
+            cell job.name
+            cell job.stage_id
+            cell job.success? ? "OK".colorize(:green) : "Failed".colorize(:red), align: :center
+            cell job.exit_code
+            cell sprintf("%.3f secs", job.duration)
+            cell job.executor
+          end
+        end
+      end.to_s
     end
   end
 end

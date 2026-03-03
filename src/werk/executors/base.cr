@@ -9,7 +9,7 @@ module Werk::Executors
       job_config : Werk::Config::Job,
     ) : ExecutionResult
       # Expand variable references.
-      interpolation.expand(ctx.variables)
+      interpolation.expand(ctx.variables.to_h)
 
       buffer_io = IO::Memory.new
       writers = Array(IO).new
@@ -30,7 +30,7 @@ module Werk::Executors
         name: ctx.name,
         executor: job_config.executor,
         variables: interpolation.variables,
-        directory: ctx.directory,
+        cwd: ctx.cwd,
         stage_id: ctx.stage_id,
         batch_id: ctx.batch_id,
         exit_code: exit_code,
@@ -60,7 +60,7 @@ module Werk::Executors
     @[JSON::Field(key: "variables")]
     getter masked_variables : Hash(String, String)
 
-    getter directory : String
+    getter cwd : String
     getter stage_id : Int32
     getter batch_id : Int32
     getter exit_code : Int32
@@ -71,7 +71,7 @@ module Werk::Executors
       @name,
       @executor,
       @variables,
-      @directory,
+      @cwd,
       @stage_id,
       @batch_id,
       @exit_code,

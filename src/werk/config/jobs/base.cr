@@ -13,7 +13,7 @@ module Werk
 
       # A list of variables to be passed to the job
       @[YAML::Field(key: "variables")]
-      getter variables : Hash(String, String) = Hash(String, String).new
+      getter variables : Werk::Variables = Werk::Variables.new
 
       # List of commands to execute
       @[YAML::Field(key: "commands")]
@@ -35,9 +35,14 @@ module Werk
       @[YAML::Field(key: "executor")]
       getter executor : String
 
-      # The shell interpreter to use
+      # The entrypoint for command execution
+      @[YAML::Field(key: "entrypoint")]
+      getter entrypoint : Array(String) = ["/bin/sh", "-c"]
+
+      # Deprecated: use entrypoint instead
+      @[Deprecated("Use entrypoint instead")]
       @[YAML::Field(key: "interpreter")]
-      getter interpreter : String = "/bin/sh"
+      getter interpreter : String? = nil
 
       use_yaml_discriminator "executor", {
         local:  Werk::Config::LocalJob,
